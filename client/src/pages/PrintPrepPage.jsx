@@ -1,4 +1,3 @@
-```javascript
 import React, { useEffect, useState } from 'react';
 import { API_URL } from '../utils/apiConfig';
 import { formatDate } from '../utils/formatDate';
@@ -15,7 +14,7 @@ export default function PrintPrepPage() {
   useEffect(() => {
     async function fetchPrep() {
       try {
-        const res = await fetch(API_URL(`/ api / meeting - preps / ${ id } `));
+        const res = await fetch(API_URL(`/api/meeting-preps/${id}`));
         if (!res.ok) throw new Error('Failed to fetch prep data');
         const json = await res.json();
         setData(json);
@@ -42,8 +41,8 @@ export default function PrintPrepPage() {
 
   if (loading) return (
     <div className="p-20 bg-white min-h-screen text-center">
-       <div className="animate-pulse text-2xl font-bold mb-10">جاري تحضير ملف الطباعة الاستراتيجي...</div>
-       <SkeletonLoader type="client_detail" />
+      <div className="animate-pulse text-2xl font-bold mb-10">جاري تحضير ملف الطباعة الاستراتيجي...</div>
+      <SkeletonLoader type="client_detail" />
     </div>
   );
 
