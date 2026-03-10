@@ -2,12 +2,13 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ArrowRight, Edit3, Trash2, Calendar, MapPin, Briefcase, 
-  ChevronDown, ChevronUp, FileText, Download, Trash, 
+  ArrowRight, Edit3, Trash2, Calendar, MapPin, Briefcase,
+  ChevronDown, ChevronUp, FileText, Download, Trash,
   Sparkles, ListChecks, Map as MapIcon, CalendarDays, Printer, UploadCloud
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../components/ToastProvider';
+import { API_URL, UPLOADS_URL } from '../utils/apiConfig';
 import ScoreRing from '../components/ScoreRing';
 import ConfirmDialog from '../components/ConfirmDialog';
 import SkeletonLoader from '../components/SkeletonLoader';
@@ -55,12 +56,12 @@ export default function ClientDetail() {
   async function fetchData() {
     try {
       const [cRes, fRes, aRes] = await Promise.all([
-        fetch(`/api/clients/${id}`),
-        fetch(`/api/files/${id}`),
-        fetch(`/api/analyze-idea/${id}`)
+        fetch(API_URL(`/api/clients/${id}`)),
+        fetch(API_URL(`/api/files/${id}`)),
+        fetch(API_URL(`/api/analyze-idea/${id}`))
       ]);
       const [cData, fData, aData] = await Promise.all([cRes.json(), fRes.json(), aRes.json()]);
-      
+
       setClient(cData);
       setFiles(fData);
       if (Array.isArray(aData) && aData.length > 0) {
@@ -75,7 +76,7 @@ export default function ClientDetail() {
 
   async function handleDeleteClient() {
     try {
-      await fetch(`/api/clients/${id}`, { method: 'DELETE' });
+      await fetch(API_URL(`/api/clients/${id}`), { method: 'DELETE' });
       addToast('تم حذف العميل بنجاح', 'success');
       navigate('/clients');
     } catch (e) {
@@ -92,7 +93,7 @@ export default function ClientDetail() {
     formData.append('client_id', id);
 
     try {
-      const res = await fetch(`/api/files/${id}`, { method: 'POST', body: formData });
+      const res = await fetch(API_URL(`/api/files/${id}`), { method: 'POST', body: formData });
       const data = await res.json();
       if (data.id) {
         addToast('تم الرفع بنجاح', 'success');
@@ -107,13 +108,13 @@ export default function ClientDetail() {
     if (!idea.trim()) return addToast('يرجى إدخال فكرة العميل أولاً', 'info');
     setIsAnalyzing(true);
     try {
-      const res = await fetch('/api/analyze-idea', {
+      const res = await fetch(API_URL('/api/analyze-idea'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ client_id: id, client_idea: idea, client_name: client.client_name, sector: client.sector })
       });
       const data = await res.json();
-      
+
       if (data.error) throw new Error(data.error);
 
       setAnalysis(data.analysis || data);
@@ -144,7 +145,7 @@ export default function ClientDetail() {
       <Icon size={18} />
       {label}
       {activeTab === id && (
-         <motion.div layoutId="tabActive" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #4F8EF7, #7C3AED)', borderRadius: '14px', zIndex: -1 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} />
+        <motion.div layoutId="tabActive" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #4F8EF7, #7C3AED)', borderRadius: '14px', zIndex: -1 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} />
       )}
     </button>
   );
@@ -197,23 +198,23 @@ export default function ClientDetail() {
               <div className="glass-card" style={{ padding: '28px' }}>
                 <h3 style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: '19px', fontWeight: 700, color: textPrimary, marginBottom: '24px', borderBottom: `1px solid ${border}`, paddingBottom: '16px' }}>تفاصيل التقييم</h3>
                 <motion.div variants={container} initial="hidden" animate="show" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                   {[
-                     { l: 'الميزانية', v: client.budget_score, icon: '💰' },
-                     { l: 'صاحب القرار', v: client.authority_score, icon: '👑' },
-                     { l: 'الحاجة الماسة', v: client.need_score, icon: '🎯' },
-                     { l: 'الجدول الزمني', v: client.timeline_score, icon: '⏰' },
-                     { l: 'ملاءمة الحل', v: client.fit_score, icon: '✅' }
-                   ].map((s, idx) => (
-                     <motion.div key={idx} variants={item} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px', background: isDark ? 'rgba(255,255,255,0.02)' : '#F9FBFF', borderRadius: '14px', border: `1px solid ${border}` }}>
-                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                         <span style={{ fontSize: '20px' }}>{s.icon}</span>
-                         <span style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: '15px', color: textSecondary, fontWeight: 500 }}>{s.l}</span>
-                       </div>
-                       <div style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: '15px', fontWeight: 800, color: s.v >= 15 ? '#10B981' : s.v >= 10 ? '#F59E0B' : '#EF4444' }}>
-                         {s.v} <span style={{ fontSize: '12px', opacity: 0.6 }}>نقطة</span>
-                       </div>
-                     </motion.div>
-                   ))}
+                  {[
+                    { l: 'الميزانية', v: client.budget_score, icon: '💰' },
+                    { l: 'صاحب القرار', v: client.authority_score, icon: '👑' },
+                    { l: 'الحاجة الماسة', v: client.need_score, icon: '🎯' },
+                    { l: 'الجدول الزمني', v: client.timeline_score, icon: '⏰' },
+                    { l: 'ملاءمة الحل', v: client.fit_score, icon: '✅' }
+                  ].map((s, idx) => (
+                    <motion.div key={idx} variants={item} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px', background: isDark ? 'rgba(255,255,255,0.02)' : '#F9FBFF', borderRadius: '14px', border: `1px solid ${border}` }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '20px' }}>{s.icon}</span>
+                        <span style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: '15px', color: textSecondary, fontWeight: 500 }}>{s.l}</span>
+                      </div>
+                      <div style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: '15px', fontWeight: 800, color: s.v >= 15 ? '#10B981' : s.v >= 10 ? '#F59E0B' : '#EF4444' }}>
+                        {s.v} <span style={{ fontSize: '12px', opacity: 0.6 }}>نقطة</span>
+                      </div>
+                    </motion.div>
+                  ))}
                 </motion.div>
               </div>
 
@@ -261,9 +262,9 @@ export default function ClientDetail() {
         {/* Files Tab */}
         {activeTab === 'files' && (
           <motion.div key="files" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 15 }}>
-            <div 
-              className="glass-card" 
-              style={{ padding: '48px', textAlign: 'center', border: `2px dashed ${border}`, cursor: 'pointer', transition: 'border-color 0.3s' }} 
+            <div
+              className="glass-card"
+              style={{ padding: '48px', textAlign: 'center', border: `2px dashed ${border}`, cursor: 'pointer', transition: 'border-color 0.3s' }}
               onClick={() => fileInputRef.current.click()}
               onMouseOver={(e) => e.currentTarget.style.borderColor = '#4F8EF7'}
               onMouseOut={(e) => e.currentTarget.style.borderColor = border}
@@ -279,22 +280,22 @@ export default function ClientDetail() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px', marginTop: '32px' }}>
               {files.map(file => (
                 <motion.div key={file.id} whileHover={{ y: -4 }} className="glass-card" style={{ padding: '18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                   <div style={{ width: '48px', height: '48px', background: isDark ? '#1a2540' : '#f0f4ff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4F8EF7', flexShrink: 0 }}>
-                     <FileText size={24} />
-                   </div>
-                   <div style={{ flex: 1, overflow: 'hidden' }}>
-                     <div style={{ fontSize: '14px', fontWeight: 700, color: textPrimary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{file.file_name}</div>
-                     <div style={{ fontSize: '12px', color: textSecondary, marginTop: '4px' }}>{formatDate(file.uploaded_at)}</div>
-                   </div>
-                   <div style={{ display: 'flex', gap: '6px' }}>
-                     <a href={`/api/files/download/${file.id}`} download className="btn-secondary" style={{ padding: '10px', borderRadius: '10px' }}><Download size={16} /></a>
-                     <button className="btn-secondary" style={{ padding: '10px', borderRadius: '10px', color: '#EF4444', borderColor: '#EF444422' }} onClick={(e) => {
-                       e.stopPropagation();
-                       setShowFileDeleteId(file.id);
-                     }}>
-                       <Trash size={16} />
-                     </button>
-                   </div>
+                  <div style={{ width: '48px', height: '48px', background: isDark ? '#1a2540' : '#f0f4ff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4F8EF7', flexShrink: 0 }}>
+                    <FileText size={24} />
+                  </div>
+                  <div style={{ flex: 1, overflow: 'hidden' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: textPrimary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{file.file_name}</div>
+                    <div style={{ fontSize: '12px', color: textSecondary, marginTop: '4px' }}>{formatDate(file.uploaded_at)}</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <a href={UPLOADS_URL(`/api/files/download/${file.id}`)} download className="btn-secondary" style={{ padding: '10px', borderRadius: '10px' }}><Download size={16} /></a>
+                    <button className="btn-secondary" style={{ padding: '10px', borderRadius: '10px', color: '#EF4444', borderColor: '#EF444422' }} onClick={(e) => {
+                      e.stopPropagation();
+                      setShowFileDeleteId(file.id);
+                    }}>
+                      <Trash size={16} />
+                    </button>
+                  </div>
                 </motion.div>
               ))}
               {files.length === 0 && (
@@ -310,26 +311,26 @@ export default function ClientDetail() {
         {activeTab === 'prep' && (
           <motion.div key="prep" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
             <div className="glass-card" style={{ padding: '32px', marginBottom: '32px', border: `1px solid transparent`, background: isDark ? 'linear-gradient(135deg, rgba(79,142,247,0.05), rgba(124,58,237,0.05))' : '#F5F9FF' }}>
-               <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
-                 <div style={{ width: '48px', height: '48px', background: 'linear-gradient(135deg, #4F8EF7, #7C3AED)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 8px 20px rgba(79,142,247,0.3)' }}>
-                   <Sparkles size={24} />
-                 </div>
-                 <h3 style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: '22px', fontWeight: 800, color: textPrimary }}>مساعد الاجتماعات الذكي</h3>
-               </div>
-               <textarea
-                 className="form-input"
-                 placeholder="اكتب هنا فكرة العميل أو المشكلة التي يريد حلها بالتفصيل... سأقوم بتحليلها وبناء خطة اجتماع كاملة لك."
-                 value={idea}
-                 onChange={e => setIdea(e.target.value)}
-                 rows={4}
-                 style={{ fontSize: '16px', lineHeight: '1.7', marginBottom: '24px', background: isDark ? 'rgba(0,0,0,0.2)' : '#fff' }}
-               />
-               <div className="flex flex-col sm:flex-row gap-4 mb-3">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
+                <div style={{ width: '48px', height: '48px', background: 'linear-gradient(135deg, #4F8EF7, #7C3AED)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 8px 20px rgba(79,142,247,0.3)' }}>
+                  <Sparkles size={24} />
+                </div>
+                <h3 style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: '22px', fontWeight: 800, color: textPrimary }}>مساعد الاجتماعات الذكي</h3>
+              </div>
+              <textarea
+                className="form-input"
+                placeholder="اكتب هنا فكرة العميل أو المشكلة التي يريد حلها بالتفصيل... سأقوم بتحليلها وبناء خطة اجتماع كاملة لك."
+                value={idea}
+                onChange={e => setIdea(e.target.value)}
+                rows={4}
+                style={{ fontSize: '16px', lineHeight: '1.7', marginBottom: '24px', background: isDark ? 'rgba(0,0,0,0.2)' : '#fff' }}
+              />
+              <div className="flex flex-col sm:flex-row gap-4 mb-3">
                 <button className="btn-primary" onClick={handleAnalyze} disabled={isAnalyzing} style={{ minWidth: '220px', height: '54px', fontSize: '16px', fontWeight: 700 }}>
                   {isAnalyzing ? 'جاري التحليل بعناية...' : 'ابدأ التحليل الذكي ✨'}
                 </button>
                 {analysis && <button className="btn-secondary" onClick={() => window.print()} style={{ height: '54px' }}><Printer size={18} /> طباعة التقرير</button>}
-               </div>
+              </div>
             </div>
 
             {isAnalyzing && <SkeletonLoader type="ai_analysis" />}
@@ -353,19 +354,19 @@ export default function ClientDetail() {
 
                 {/* Discovery Questions */}
                 <motion.div variants={item} initial="hidden" animate="show" className="glass-card" style={{ padding: '0', overflow: 'hidden', marginBottom: '28px' }}>
-                   <div style={{ padding: '20px 28px', borderBottom: `1px solid ${border}`, display: 'flex', alignItems: 'center', gap: '12px', fontWeight: 800, background: isDark ? 'rgba(255,255,255,0.02)' : '#F9FBFF', fontSize: '18px', color: '#7C3AED' }}>
-                     <ListChecks size={22} /> أسئلة اكتشاف الاحتياج (Discovery)
-                   </div>
-                   <div style={{ padding: '8px 16px' }}>
-                     {['business', 'technical', 'scope'].map(category => (
-                       analysis.discovery_questions?.[category]?.map((q, idx) => (
-                         <div key={`${category}-${idx}`} style={{ padding: '18px 12px', borderBottom: idx === analysis.discovery_questions[category].length - 1 && category === 'scope' ? 'none' : `1px solid ${border}`, display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-                           <span style={{ width: '28px', height: '28px', background: '#7C3AED15', color: '#7C3AED', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 800, flexShrink: 0, marginTop: '2px' }}>?</span>
-                           <div style={{ fontSize: '16px', fontWeight: 600, color: textPrimary, lineHeight: '1.5' }}>{q}</div>
-                         </div>
-                       ))
-                     ))}
-                   </div>
+                  <div style={{ padding: '20px 28px', borderBottom: `1px solid ${border}`, display: 'flex', alignItems: 'center', gap: '12px', fontWeight: 800, background: isDark ? 'rgba(255,255,255,0.02)' : '#F9FBFF', fontSize: '18px', color: '#7C3AED' }}>
+                    <ListChecks size={22} /> أسئلة اكتشاف الاحتياج (Discovery)
+                  </div>
+                  <div style={{ padding: '8px 16px' }}>
+                    {['business', 'technical', 'scope'].map(category => (
+                      analysis.discovery_questions?.[category]?.map((q, idx) => (
+                        <div key={`${category}-${idx}`} style={{ padding: '18px 12px', borderBottom: idx === analysis.discovery_questions[category].length - 1 && category === 'scope' ? 'none' : `1px solid ${border}`, display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                          <span style={{ width: '28px', height: '28px', background: '#7C3AED15', color: '#7C3AED', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 800, flexShrink: 0, marginTop: '2px' }}>?</span>
+                          <div style={{ fontSize: '16px', fontWeight: 600, color: textPrimary, lineHeight: '1.5' }}>{q}</div>
+                        </div>
+                      ))
+                    ))}
+                  </div>
                 </motion.div>
 
                 {/* User Journeys */}
@@ -394,8 +395,8 @@ export default function ClientDetail() {
             )}
             {!analysis && !isAnalyzing && (
               <div style={{ textAlign: 'center', padding: '60px', color: textMuted, border: `2px dashed ${border}`, borderRadius: '24px' }}>
-                 <Sparkles size={48} style={{ opacity: 0.1, marginBottom: '20px' }} />
-                 <p style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}>أدخل فكرة العميل أعلاه للحصول على تحليل واحترافي للاجتماع</p>
+                <Sparkles size={48} style={{ opacity: 0.1, marginBottom: '20px' }} />
+                <p style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}>أدخل فكرة العميل أعلاه للحصول على تحليل واحترافي للاجتماع</p>
               </div>
             )}
           </motion.div>
@@ -417,7 +418,7 @@ export default function ClientDetail() {
         onConfirm={async () => {
           if (!showFileDeleteId) return;
           try {
-            await fetch(`/api/files/${showFileDeleteId}`, { method: 'DELETE' });
+            await fetch(API_URL(`/api/files/${showFileDeleteId}`), { method: 'DELETE' });
             fetchData();
             addToast('تم حذف الملف بنجاح', 'success');
           } catch (e) {

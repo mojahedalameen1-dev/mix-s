@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { FileText, Copy, Loader2, Sparkles, Zap, Download } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../components/ToastProvider';
+import { API_URL } from '../utils/apiConfig';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -36,22 +37,22 @@ export default function TechnicalProposals() {
 
     setLoading(true);
     setProposal('');
-    
+
     try {
-      const res = await fetch('/api/proposals', {
+      const res = await fetch(API_URL('/api/proposals'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ text: inputText }),
       });
-      
+
       const data = await res.json();
-      
+
       if (!res.ok) {
         throw new Error(data.error || 'حدث خطأ في الاتصال');
       }
-      
+
       setProposal(data.proposal);
       addToast('تم إنشاء العرض الفني بنجاح', 'success');
     } catch (err) {
@@ -72,14 +73,14 @@ export default function TechnicalProposals() {
     if (!proposal) return;
     const element = document.getElementById('proposal-content');
     if (!element) return;
-    
+
     try {
       const canvas = await html2canvas(element, { scale: 2 });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
+
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save('technical-proposal.pdf');
       addToast('تم تحميل العرض الفني بنجاح', 'success');
@@ -124,27 +125,27 @@ export default function TechnicalProposals() {
           </div>
 
           <div>
-             <span style={{ fontSize: '13px', fontWeight: 600, color: textSecondary, marginBottom: '8px', display: 'block' }}>أمثلة سريعة:</span>
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-               {QUICK_EXAMPLES.map((ex, idx) => (
-                 <button
-                   key={idx}
-                   onClick={() => setInputText(ex)}
-                   style={{
-                     textAlign: 'right', padding: '10px 14px', borderRadius: '10px',
-                     background: isDark ? 'rgba(255,255,255,0.03)' : '#F8FAFF', border: `1px solid ${border}`,
-                     color: textPrimary, fontSize: '14px', fontFamily: "'IBM Plex Sans Arabic', sans-serif",
-                     cursor: 'pointer', transition: 'all 0.2s'
-                   }}
-                   onMouseOver={e => Object.assign(e.currentTarget.style, { background: isDark ? 'rgba(79, 142, 247, 0.1)' : '#EFF6FF', borderColor: '#4F8EF7' })}
-                   onMouseOut={e => Object.assign(e.currentTarget.style, { background: isDark ? 'rgba(255,255,255,0.03)' : '#F8FAFF', borderColor: border })}
-                 >
-                   {ex}
-                 </button>
-               ))}
-             </div>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: textSecondary, marginBottom: '8px', display: 'block' }}>أمثلة سريعة:</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {QUICK_EXAMPLES.map((ex, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setInputText(ex)}
+                  style={{
+                    textAlign: 'right', padding: '10px 14px', borderRadius: '10px',
+                    background: isDark ? 'rgba(255,255,255,0.03)' : '#F8FAFF', border: `1px solid ${border}`,
+                    color: textPrimary, fontSize: '14px', fontFamily: "'IBM Plex Sans Arabic', sans-serif",
+                    cursor: 'pointer', transition: 'all 0.2s'
+                  }}
+                  onMouseOver={e => Object.assign(e.currentTarget.style, { background: isDark ? 'rgba(79, 142, 247, 0.1)' : '#EFF6FF', borderColor: '#4F8EF7' })}
+                  onMouseOut={e => Object.assign(e.currentTarget.style, { background: isDark ? 'rgba(255,255,255,0.03)' : '#F8FAFF', borderColor: border })}
+                >
+                  {ex}
+                </button>
+              ))}
+            </div>
           </div>
-          
+
           <button
             onClick={handleGenerate}
             disabled={loading}
@@ -216,8 +217,8 @@ export default function TechnicalProposals() {
                 <span style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: '15px' }}>من فضلك انتظر، يقوم الذكاء الاصطناعي الآن بصياغة العرض الفني بشكل احترافي...</span>
               </div>
             ) : proposal ? (
-              <div 
-                id="proposal-content" 
+              <div
+                id="proposal-content"
                 style={{
                   fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: '16px', lineHeight: '1.8',
                   color: textPrimary, whiteSpace: 'pre-wrap', textAlign: 'right', padding: '20px'
@@ -227,27 +228,27 @@ export default function TechnicalProposals() {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: textSecondary, opacity: 0.5, gap: '16px', minHeight: '300px' }}>
-                 <div style={{ 
-                   width: '100%', 
-                   height: '100%', 
-                   border: `2px dashed ${border}`, 
-                   borderRadius: '12px', 
-                   display: 'flex', 
-                   flexDirection: 'column', 
-                   alignItems: 'center', 
-                   justifyContent: 'center',
-                   background: isDark ? 'rgba(255,255,255,0.01)' : '#F8FAFF',
-                   padding: '40px',
-                   textAlign: 'center'
-                 }}>
-                    <FileText size={64} style={{ marginBottom: '16px', opacity: 0.4 }} />
-                    <h3 style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: '18px', fontWeight: 700, color: textPrimary, marginBottom: '8px' }}>
-                      النتيجة ستظهر هنا 📄
-                    </h3>
-                    <p style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: '14px', maxWidth: '300px' }}>
-                      قم بإدخال تفاصيل المشروع واضغط على زر "إنشاء العرض الفني" ليقوم الذكاء الاصطناعي ببناء مقترح متكامل جاهز للنسخ والتحميل.
-                    </p>
-                 </div>
+                <div style={{
+                  width: '100%',
+                  height: '100%',
+                  border: `2px dashed ${border}`,
+                  borderRadius: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: isDark ? 'rgba(255,255,255,0.01)' : '#F8FAFF',
+                  padding: '40px',
+                  textAlign: 'center'
+                }}>
+                  <FileText size={64} style={{ marginBottom: '16px', opacity: 0.4 }} />
+                  <h3 style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: '18px', fontWeight: 700, color: textPrimary, marginBottom: '8px' }}>
+                    النتيجة ستظهر هنا 📄
+                  </h3>
+                  <p style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: '14px', maxWidth: '300px' }}>
+                    قم بإدخال تفاصيل المشروع واضغط على زر "إنشاء العرض الفني" ليقوم الذكاء الاصطناعي ببناء مقترح متكامل جاهز للنسخ والتحميل.
+                  </p>
+                </div>
               </div>
             )}
           </div>

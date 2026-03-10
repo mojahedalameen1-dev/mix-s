@@ -5,6 +5,7 @@ import {
   LayoutDashboard, Users, Flame, Clock, PlusCircle, Zap, Presentation, ChevronRight, ChevronLeft, KanbanSquare, FileText, Target
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { API_URL } from '../utils/apiConfig';
 
 const navItems = [
   { to: '/', label: 'لوحة التحكم', icon: LayoutDashboard, exact: true },
@@ -22,7 +23,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobile, isMobil
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch('/api/clients');
+        const res = await fetch(API_URL('/api/clients'));
         if (res.ok) {
           const data = await res.json();
           const staleThreshold = new Date();

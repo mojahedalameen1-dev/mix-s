@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../components/ToastProvider';
+import { API_URL } from '../utils/apiConfig';
 import { formatSAR } from '../utils/formatSAR';
 import { daysDiff } from '../utils/formatDate';
 import SkeletonLoader from '../components/SkeletonLoader';
@@ -40,22 +41,23 @@ export default function Pipeline() {
 
   async function fetchClients() {
     try {
-      const res = await fetch('/api/clients');
-      const data = await res.json();
+      const res = await fetch(API_URL('/api/clients'));
+      if (res.ok) {
+        const data = await res.json();
+        const newColumns = { 'تفاوض': [], 'فاز': [] };
 
-      const newColumns = { 'تفاوض': [], 'فاز': [] };
+        data.forEach(client => {
+          const stage = client.stage || 'تفاوض';
+          // Map any stage other than Won/Lost into "تفاوض" (Closing)
+          if (stage === 'فاز') {
+            newColumns['فاز'].push(client);
+          } else if (stage !== 'خسر') {
+            newColumns['تفاوض'].push(client);
+          }
+        });
 
-      data.forEach(client => {
-        const stage = client.stage || 'تفاوض';
-        // Map any stage other than Won/Lost into "تفاوض" (Closing)
-        if (stage === 'فاز') {
-          newColumns['فاز'].push(client);
-        } else if (stage !== 'خسر') {
-          newColumns['تفاوض'].push(client);
-        }
-      });
-
-      setColumns(newColumns);
+        setColumns(newColumns);
+      }
     } catch (e) {
       addToast('خطأ في تحميل الصفقات', 'error');
     } finally {
@@ -70,7 +72,7 @@ export default function Pipeline() {
     }
     setQuickSaving(true);
     try {
-      const res = await fetch('/api/clients', {
+      const res = await fetch(API_URL('/api/clients'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -124,7 +126,7 @@ export default function Pipeline() {
     }
 
     try {
-      const res = await fetch(`/api/clients/${draggableId}/stage`, {
+      const res = await fetch(API_URL(`/api/clients/${draggableId}/stage`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stage: destColId })

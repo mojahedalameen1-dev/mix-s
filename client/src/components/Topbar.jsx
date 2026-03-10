@@ -4,13 +4,14 @@ import { Bell, AlertCircle, Calendar, CheckCircle2, Menu } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { formatDate } from '../utils/formatDate';
+import { API_URL } from '../utils/apiConfig';
 
 export default function Topbar({ isMobile, setIsMobileOpen }) {
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dueTodayDeals, setDueTodayDeals] = useState([]);
-  
+
   const textPrimary = isDark ? '#F0F4FF' : '#0A0F1E';
   const textSecondary = isDark ? '#8B9CC8' : '#4A5570';
   const textMuted = isDark ? '#4A5A82' : '#94A3B8';
@@ -19,33 +20,33 @@ export default function Topbar({ isMobile, setIsMobileOpen }) {
   useEffect(() => {
     const fetchTodayFollowups = async () => {
       try {
-        const res = await fetch('/api/clients');
+        const res = await fetch(API_URL('/api/clients'));
         if (res.ok) {
           const data = await res.json();
           const today = new Date().toISOString().split('T')[0];
-          
+
           const dueToday = data.filter(client => {
             if (!client.next_action_date) return false;
             // Check if it's strictly due today (or overdue compared to current local time, but mostly matching today's date)
             const nextAction = new Date(client.next_action_date).toISOString().split('T')[0];
             return nextAction === today;
           });
-          
+
           setDueTodayDeals(dueToday);
         }
       } catch (err) {
         console.error('Error fetching today followups for topbar:', err);
       }
     };
-    
+
     fetchTodayFollowups();
     const intervalId = setInterval(fetchTodayFollowups, 60000); // 1 min update
     return () => clearInterval(intervalId);
   }, []);
 
   return (
-    <div 
-      style={{ 
+    <div
+      style={{
         height: '64px',
         borderBottom: `1px solid ${border}`,
         display: 'flex',
@@ -60,19 +61,19 @@ export default function Topbar({ isMobile, setIsMobileOpen }) {
       }}
     >
       <div className="flex items-center gap-2">
-         {isMobile && (
-           <button
-             onClick={() => setIsMobileOpen(true)}
-             style={{
-               width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-               background: 'transparent', border: 'none', color: textPrimary, cursor: 'pointer',
-               marginRight: '-8px' // Align nicely with edge
-             }}
-           >
-             <Menu size={24} />
-           </button>
-         )}
-         {/* Could place breadcrumbs or page title here if needed */}
+        {isMobile && (
+          <button
+            onClick={() => setIsMobileOpen(true)}
+            style={{
+              width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'transparent', border: 'none', color: textPrimary, cursor: 'pointer',
+              marginRight: '-8px' // Align nicely with edge
+            }}
+          >
+            <Menu size={24} />
+          </button>
+        )}
+        {/* Could place breadcrumbs or page title here if needed */}
       </div>
 
       <div className="flex items-center gap-4 relative">
@@ -137,19 +138,19 @@ export default function Topbar({ isMobile, setIsMobileOpen }) {
                   {dueTodayDeals.length} اليوم
                 </div>
               </div>
-              
+
               <div style={{ maxHeight: '350px', overflowY: 'auto', padding: '8px' }} className="custom-scrollbar">
                 {dueTodayDeals.length === 0 ? (
                   <div style={{ padding: '32px 16px', textAlign: 'center', color: textMuted }}>
                     <div style={{ background: isDark ? 'rgba(255,255,255,0.02)' : '#F8FAFF', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-                       <CheckCircle2 size={24} color="#10B981" />
+                      <CheckCircle2 size={24} color="#10B981" />
                     </div>
                     <p style={{ fontSize: '14px', fontWeight: 600, color: textPrimary, margin: '0 0 4px 0' }}>لا توجد متابعات اليوم</p>
                     <p style={{ fontSize: '12px', margin: 0 }}>أنت تسير بشكل ممتاز!</p>
                   </div>
                 ) : (
                   dueTodayDeals.map(deal => (
-                    <div 
+                    <div
                       key={deal.id}
                       onClick={() => {
                         navigate('/pipeline');
@@ -164,24 +165,24 @@ export default function Topbar({ isMobile, setIsMobileOpen }) {
                       onMouseOver={(e) => Object.assign(e.currentTarget.style, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F8FAFF' })}
                       onMouseOut={(e) => Object.assign(e.currentTarget.style, { backgroundColor: 'transparent' })}
                     >
-                       <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', padding: '8px', borderRadius: '50%', flexShrink: 0 }}>
-                          <AlertCircle size={16} />
-                       </div>
-                       <div>
-                         <div style={{ fontSize: '14px', fontWeight: 700, color: textPrimary, marginBottom: '2px' }}>{deal.client_name}</div>
-                         <div style={{ fontSize: '12px', color: textSecondary, marginBottom: '4px' }}>يجب متابعة العميل اليوم!</div>
-                         <div style={{ fontSize: '11px', color: textMuted, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                           <Calendar size={10} /> {formatDate(deal.next_action_date)}
-                         </div>
-                       </div>
+                      <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', padding: '8px', borderRadius: '50%', flexShrink: 0 }}>
+                        <AlertCircle size={16} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: textPrimary, marginBottom: '2px' }}>{deal.client_name}</div>
+                        <div style={{ fontSize: '12px', color: textSecondary, marginBottom: '4px' }}>يجب متابعة العميل اليوم!</div>
+                        <div style={{ fontSize: '11px', color: textMuted, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Calendar size={10} /> {formatDate(deal.next_action_date)}
+                        </div>
+                      </div>
                     </div>
                   ))
                 )}
               </div>
-              
+
               {dueTodayDeals.length > 0 && (
                 <div style={{ padding: '12px', borderTop: `1px solid ${border}`, textAlign: 'center' }}>
-                  <button 
+                  <button
                     onClick={() => { navigate('/pipeline'); setIsDropdownOpen(false); }}
                     style={{ background: 'transparent', border: 'none', color: '#4F8EF7', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
                   >

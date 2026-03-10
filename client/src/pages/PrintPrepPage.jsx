@@ -1,4 +1,7 @@
+```javascript
 import React, { useEffect, useState } from 'react';
+import { API_URL } from '../utils/apiConfig';
+import { formatDate } from '../utils/formatDate';
 import { useParams } from 'react-router-dom';
 import MeetingPrepPrintLayout from '../components/MeetingPrepPrintLayout';
 import SkeletonLoader from '../components/SkeletonLoader';
@@ -12,7 +15,7 @@ export default function PrintPrepPage() {
   useEffect(() => {
     async function fetchPrep() {
       try {
-        const res = await fetch(`/api/meeting-preps/${id}`);
+        const res = await fetch(API_URL(`/ api / meeting - preps / ${ id } `));
         if (!res.ok) throw new Error('Failed to fetch prep data');
         const json = await res.json();
         setData(json);

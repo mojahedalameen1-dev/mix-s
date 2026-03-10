@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../components/ToastProvider';
+import { API_URL } from '../utils/apiConfig';
 import SkeletonLoader from '../components/SkeletonLoader';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { formatDate } from '../utils/formatDate';
@@ -66,7 +67,7 @@ export default function MeetingPrepHub() {
 
   async function fetchPreps() {
     try {
-      const res = await fetch('/api/meeting-preps');
+      const res = await fetch(API_URL('/api/meeting-preps'));
       const data = await res.json();
       setPreps(data);
       if (data.length > 0 && !activePrepId) {
@@ -83,7 +84,7 @@ export default function MeetingPrepHub() {
     setActivePrepId(id);
     setPrepData(null); // triggers skeleton
     try {
-      const res = await fetch(`/api/meeting-preps/${id}`);
+      const res = await fetch(API_URL(`/api/meeting-preps/${id}`));
       const data = await res.json();
       setPrepData(data);
       setFormData({
@@ -105,7 +106,7 @@ export default function MeetingPrepHub() {
   const performAutoSave = async (id, payload) => {
     if (!id) return;
     try {
-      await fetch(`/api/meeting-preps/${id}`, {
+      await fetch(API_URL(`/api/meeting-preps/${id}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -147,7 +148,7 @@ export default function MeetingPrepHub() {
 
   async function handleCreateNew() {
     try {
-      const res = await fetch('/api/meeting-preps', {
+      const res = await fetch(API_URL('/api/meeting-preps'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: 'تحضير اجتماع جديد' })
@@ -163,7 +164,7 @@ export default function MeetingPrepHub() {
 
   async function handleDelete() {
     try {
-      await fetch(`/api/meeting-preps/${activePrepId}`, { method: 'DELETE' });
+      await fetch(API_URL(`/api/meeting-preps/${activePrepId}`), { method: 'DELETE' });
       addToast('تم الحذف بنجاح', 'success');
       setShowDelete(false);
       const nextId = preps.find(p => p.id !== activePrepId)?.id || null;
@@ -191,7 +192,7 @@ export default function MeetingPrepHub() {
     }
 
     try {
-      const res = await fetch('/api/analyze-prep', {
+      const res = await fetch(API_URL('/api/analyze-prep'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

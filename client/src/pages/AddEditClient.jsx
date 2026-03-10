@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Save, X, ChevronLeft, Briefcase, Users, Target, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../components/ToastProvider';
+import { API_URL } from '../utils/apiConfig';
 import { getScoreLabel } from '../utils/scoreColor';
 
 const CITIES = ['الرياض', 'جدة', 'الدمام', 'مكة', 'المدينة', 'أبها', 'تبوك', 'أخرى'];
@@ -83,7 +84,7 @@ export default function AddEditClient() {
 
   useEffect(() => {
     if (isEdit) {
-      fetch(`/api/clients/${id}`)
+      fetch(API_URL(`/api/clients/${id}`))
         .then(r => r.json())
         .then(data => {
           setForm({
@@ -133,7 +134,7 @@ export default function AddEditClient() {
     }
     setSaving(true);
     try {
-      const url = isEdit ? `/api/clients/${id}` : '/api/clients';
+      const url = isEdit ? API_URL(`/api/clients/${id}`) : API_URL('/api/clients');
       const method = isEdit ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
@@ -152,17 +153,17 @@ export default function AddEditClient() {
   }
 
   const StepIndicator = ({ num, label, icon: Icon }) => (
-    <div 
-        onClick={() => setActiveStep(num)}
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', position: 'relative' }}
+    <div
+      onClick={() => setActiveStep(num)}
+      style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', position: 'relative' }}
     >
-      <div style={{ 
-          width: '40px', height: '40px', borderRadius: '12px', 
-          background: activeStep === num ? 'linear-gradient(135deg, #4F8EF7, #7C3AED)' : (activeStep > num ? '#10B981' : elevated),
-          color: activeStep >= num ? '#fff' : textSecondary,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px',
-          boxShadow: activeStep === num ? '0 8px 16px rgba(79,142,247,0.3)' : 'none',
-          transition: 'all 0.3s'
+      <div style={{
+        width: '40px', height: '40px', borderRadius: '12px',
+        background: activeStep === num ? 'linear-gradient(135deg, #4F8EF7, #7C3AED)' : (activeStep > num ? '#10B981' : elevated),
+        color: activeStep >= num ? '#fff' : textSecondary,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px',
+        boxShadow: activeStep === num ? '0 8px 16px rgba(79,142,247,0.3)' : 'none',
+        transition: 'all 0.3s'
       }}>
         {activeStep > num ? <CheckCircle2 size={20} /> : <Icon size={20} />}
       </div>
@@ -185,10 +186,10 @@ export default function AddEditClient() {
 
       {/* Step Progress */}
       <div style={{ display: 'flex', marginBottom: '40px', position: 'relative' }}>
-         <div style={{ position: 'absolute', top: '20px', left: '16%', right: '16%', height: '2px', background: border, zIndex: 0 }} />
-         <StepIndicator num={1} label="بيانات العميل" icon={Users} />
-         <StepIndicator num={2} label="تفاصيل الصفقة" icon={Briefcase} />
-         <StepIndicator num={3} label="تقييم الجدية" icon={Target} />
+        <div style={{ position: 'absolute', top: '20px', left: '16%', right: '16%', height: '2px', background: border, zIndex: 0 }} />
+        <StepIndicator num={1} label="بيانات العميل" icon={Users} />
+        <StepIndicator num={2} label="تفاصيل الصفقة" icon={Briefcase} />
+        <StepIndicator num={3} label="تقييم الجدية" icon={Target} />
       </div>
 
       <AnimatePresence mode="wait">
@@ -198,10 +199,10 @@ export default function AddEditClient() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
               <div style={{ gridColumn: '1/-1' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: textSecondary, marginBottom: '10px' }}>اسم العميل أو الجهة</label>
-                <input 
-                  className="form-input" 
-                  style={{ fontSize: '17px', padding: '16px' }} 
-                  placeholder="مثال: شركة الصناعات المتقدمة" 
+                <input
+                  className="form-input"
+                  style={{ fontSize: '17px', padding: '16px' }}
+                  placeholder="مثال: شركة الصناعات المتقدمة"
                   value={form.client_name}
                   onChange={e => set('client_name', e.target.value)}
                 />
@@ -212,10 +213,10 @@ export default function AddEditClient() {
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: textSecondary, marginBottom: '10px' }}>نوع العميل</label>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   {['شركة', 'فرد'].map(t => (
-                    <button 
+                    <button
                       key={t}
                       onClick={() => set('client_type', t)}
-                      style={{ 
+                      style={{
                         flex: 1, padding: '14px', borderRadius: '12px', border: `1px solid ${form.client_type === t ? '#4F8EF7' : border}`,
                         background: form.client_type === t ? '#4F8EF710' : elevated,
                         color: form.client_type === t ? '#4F8EF7' : textSecondary,
@@ -231,26 +232,26 @@ export default function AddEditClient() {
               <div>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: textSecondary, marginBottom: '10px' }}>المدينة</label>
                 <select className="form-input" value={form.city} onChange={e => set('city', e.target.value)}>
-                   {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: textSecondary, marginBottom: '10px' }}>القطاع</label>
                 <select className="form-input" value={form.sector} onChange={e => set('sector', e.target.value)}>
-                   {SECTORS.map(s => <option key={s} value={s}>{s}</option>)}
+                  {SECTORS.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: textSecondary, marginBottom: '10px' }}>قناة الاكتساب</label>
                 <select className="form-input" value={form.channel} onChange={e => set('channel', e.target.value)}>
-                   {CHANNELS.map(c => <option key={c} value={c}>{c}</option>)}
+                  {CHANNELS.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '32px' }}>
-               <button className="btn-primary" onClick={() => setActiveStep(2)} style={{ padding: '12px 32px' }}>المتابعة <ArrowRight size={18} /></button>
+              <button className="btn-primary" onClick={() => setActiveStep(2)} style={{ padding: '12px 32px' }}>المتابعة <ArrowRight size={18} /></button>
             </div>
           </motion.div>
         )}
@@ -259,11 +260,11 @@ export default function AddEditClient() {
         {activeStep === 2 && (
           <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="glass-card p-5 md:p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
-               <div style={{ gridColumn: '1/-1' }}>
+              <div style={{ gridColumn: '1/-1' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: textSecondary, marginBottom: '10px' }}>اسم الصفقة</label>
-                <input 
-                  className="form-input" 
-                  placeholder="مثال: توريد نظام نقاط البيع لجميع الفروع" 
+                <input
+                  className="form-input"
+                  placeholder="مثال: توريد نظام نقاط البيع لجميع الفروع"
                   value={form.deal_name}
                   onChange={e => set('deal_name', e.target.value)}
                 />
@@ -283,7 +284,7 @@ export default function AddEditClient() {
               <div>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: textSecondary, marginBottom: '10px' }}>مرحلة العميل الحالية</label>
                 <select className="form-input" value={form.stage} onChange={e => set('stage', e.target.value)} style={{ color: stageColors[form.stage], fontWeight: 700 }}>
-                   {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                  {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
 
@@ -298,8 +299,8 @@ export default function AddEditClient() {
               </div>
             </div>
             <div style={{ display: 'flex', gap: '16px', marginTop: '32px' }}>
-               <button className="btn-secondary" onClick={() => setActiveStep(1)}>السابق</button>
-               <button className="btn-primary" onClick={() => setActiveStep(3)} style={{ padding: '12px 32px' }}>التقييم الفني <ArrowRight size={18} /></button>
+              <button className="btn-secondary" onClick={() => setActiveStep(1)}>السابق</button>
+              <button className="btn-primary" onClick={() => setActiveStep(3)} style={{ padding: '12px 32px' }}>التقييم الفني <ArrowRight size={18} /></button>
             </div>
           </motion.div>
         )}
@@ -307,56 +308,56 @@ export default function AddEditClient() {
         {/* STEP 3: SCORING (CRITICAL UX) */}
         {activeStep === 3 && (
           <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-             {/* Live Score Floating Indicator */}
-             <div className="glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 md:p-6 mb-6" style={{ border: `2px solid ${scoreColor}44`, background: `${scoreColor}08` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ fontSize: '32px', fontWeight: 900, color: scoreColor }}>{totalScore}</div>
-                  <div>
-                    <div style={{ fontSize: '16px', fontWeight: 800, color: scoreColor }}>تقييم العميل: {scoreLabel}</div>
-                    <div style={{ fontSize: '12px', color: textSecondary }}>يتم التحديث لحظياً بناءً على إجاباتك</div>
+            {/* Live Score Floating Indicator */}
+            <div className="glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 md:p-6 mb-6" style={{ border: `2px solid ${scoreColor}44`, background: `${scoreColor}08` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ fontSize: '32px', fontWeight: 900, color: scoreColor }}>{totalScore}</div>
+                <div>
+                  <div style={{ fontSize: '16px', fontWeight: 800, color: scoreColor }}>تقييم العميل: {scoreLabel}</div>
+                  <div style={{ fontSize: '12px', color: textSecondary }}>يتم التحديث لحظياً بناءً على إجاباتك</div>
+                </div>
+              </div>
+              <div style={{ width: '120px', height: '8px', background: border, borderRadius: '10px', overflow: 'hidden' }}>
+                <motion.div initial={{ width: 0 }} animate={{ width: `${totalScore}%` }} style={{ height: '100%', background: scoreColor }} />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '40px' }}>
+              {SCORE_CRITERIA.map((criterion) => (
+                <div key={criterion.key} className="glass-card p-5 md:p-6">
+                  <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>
+                    <span style={{ fontSize: '20px' }}>{criterion.icon}</span> {criterion.label}
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {criterion.options.map((opt) => {
+                      const isSelected = form[criterion.key] === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          onClick={() => set(criterion.key, opt.value)}
+                          style={{
+                            padding: '16px 12px', borderRadius: '14px', border: `2px solid ${isSelected ? '#4F8EF7' : border}`,
+                            background: isSelected ? '#4F8EF710' : elevated,
+                            color: isSelected ? '#4F8EF7' : textSecondary,
+                            transition: 'all 0.2s', textAlign: 'center', cursor: 'pointer'
+                          }}
+                        >
+                          <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>{opt.label}</div>
+                          <div style={{ fontSize: '11px', opacity: 0.7 }}>{opt.value} نقطة</div>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
-                <div style={{ width: '120px', height: '8px', background: border, borderRadius: '10px', overflow: 'hidden' }}>
-                  <motion.div initial={{ width: 0 }} animate={{ width: `${totalScore}%` }} style={{ height: '100%', background: scoreColor }} />
-                </div>
-             </div>
+              ))}
+            </div>
 
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '40px' }}>
-                {SCORE_CRITERIA.map((criterion) => (
-                  <div key={criterion.key} className="glass-card p-5 md:p-6">
-                    <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>
-                      <span style={{ fontSize: '20px' }}>{criterion.icon}</span> {criterion.label}
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                       {criterion.options.map((opt) => {
-                         const isSelected = form[criterion.key] === opt.value;
-                         return (
-                           <button
-                            key={opt.value}
-                            onClick={() => set(criterion.key, opt.value)}
-                            style={{ 
-                              padding: '16px 12px', borderRadius: '14px', border: `2px solid ${isSelected ? '#4F8EF7' : border}`,
-                              background: isSelected ? '#4F8EF710' : elevated,
-                              color: isSelected ? '#4F8EF7' : textSecondary,
-                              transition: 'all 0.2s', textAlign: 'center', cursor: 'pointer'
-                            }}
-                           >
-                             <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>{opt.label}</div>
-                             <div style={{ fontSize: '11px', opacity: 0.7 }}>{opt.value} نقطة</div>
-                           </button>
-                         )
-                       })}
-                    </div>
-                  </div>
-                ))}
-             </div>
-
-             <div style={{ display: 'flex', gap: '16px', marginBottom: '60px' }}>
-               <button className="btn-secondary" onClick={() => setActiveStep(2)}>السابق</button>
-               <button className="btn-primary" onClick={handleSubmit} disabled={saving} style={{ flex: 1, fontSize: '18px', fontWeight: 800, height: '56px' }}>
-                 {saving ? 'جاري الحفظ...' : (isEdit ? 'تحديث بيانات العميل ✓' : 'حفظ العميل والبدء بالمتابعة 🚀')}
-               </button>
-             </div>
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '60px' }}>
+              <button className="btn-secondary" onClick={() => setActiveStep(2)}>السابق</button>
+              <button className="btn-primary" onClick={handleSubmit} disabled={saving} style={{ flex: 1, fontSize: '18px', fontWeight: 800, height: '56px' }}>
+                {saving ? 'جاري الحفظ...' : (isEdit ? 'تحديث بيانات العميل ✓' : 'حفظ العميل والبدء بالمتابعة 🚀')}
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

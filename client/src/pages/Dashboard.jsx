@@ -5,6 +5,7 @@ import {
   Users, Flame, Wallet, TrendingUp, Calendar, ArrowUpRight, CheckCircle2, ChevronLeft, Zap, PlusCircle
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { API_URL } from '../utils/apiConfig';
 import { useToast } from '../components/ToastProvider';
 import { formatSAR } from '../utils/formatSAR';
 import { formatDate, isToday, isOverdue, daysDiff } from '../utils/formatDate';
@@ -64,8 +65,8 @@ export default function Dashboard() {
   async function fetchData() {
     try {
       const [statsRes, clientsRes] = await Promise.all([
-        fetch('/api/dashboard/stats').then(r => r.json()),
-        fetch('/api/clients').then(r => r.json())
+        fetch(API_URL('/api/dashboard/stats')).then(r => r.json()),
+        fetch(API_URL('/api/clients')).then(r => r.json())
       ]);
       setStats(statsRes);
       setClients(clientsRes);
@@ -78,7 +79,7 @@ export default function Dashboard() {
 
   async function markContacted(clientId) {
     try {
-      await fetch(`/api/clients/${clientId}/contacted`, { method: 'PATCH' });
+      await fetch(API_URL(`/api/clients/${clientId}/contacted`), { method: 'PATCH' });
       addToast('تم تسجيل التواصل بنجاح ✓', 'success');
       fetchData(); // Refresh all data
     } catch (e) {

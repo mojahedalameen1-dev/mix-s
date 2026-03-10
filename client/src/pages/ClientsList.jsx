@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, Filter, Plus, ChevronDown, MoreVertical, Eye, Edit2, Trash2, 
+import {
+  Search, Filter, Plus, ChevronDown, MoreVertical, Eye, Edit2, Trash2,
   ArrowUpDown, ExternalLink, SlidersHorizontal, Users as UsersIcon
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../components/ToastProvider';
+import { API_URL } from '../utils/apiConfig';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { formatSAR } from '../utils/formatSAR';
 import { formatDate } from '../utils/formatDate';
@@ -47,9 +48,13 @@ export default function ClientsList({ filter }) {
 
   async function fetchClients() {
     try {
-      const res = await fetch('/api/clients');
-      const data = await res.json();
-      setClients(data);
+      const res = await fetch(API_URL('/api/clients'));
+      if (res.ok) {
+        const data = await res.json();
+        setClients(data);
+      } else {
+        throw new Error('Failed to fetch clients');
+      }
     } catch (e) {
       addToast('فشل تحميل قائمة العملاء', 'error');
     } finally {
@@ -58,12 +63,12 @@ export default function ClientsList({ filter }) {
   }
 
   const filteredClients = clients.filter(c => {
-    const matchesSearch = c.client_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          c.sector.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch = c.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.sector.toLowerCase().includes(searchTerm.toLowerCase());
+
     if (filterType === 'hot') return matchesSearch && (c.total_score >= 80);
     if (filterType === 'followup') return matchesSearch && c.next_followup_date;
-    
+
     if (activeTab === 'hot') return matchesSearch && (c.total_score >= 80);
     if (activeTab === 'followup') return matchesSearch && c.next_followup_date;
     return matchesSearch;
@@ -83,10 +88,10 @@ export default function ClientsList({ filter }) {
           </h1>
           <p style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: '15px', color: textSecondary, marginTop: '4px' }}>إدارة ومتابعة جميع الفرص البيعية في مكان واحد</p>
         </div>
-        <motion.button 
+        <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="btn-primary" 
+          className="btn-primary"
           onClick={() => navigate('/clients/new')}
           style={{ padding: '12px 24px', fontSize: '15px', fontWeight: 700 }}
         >
@@ -99,9 +104,9 @@ export default function ClientsList({ filter }) {
         {/* Search */}
         <div style={{ position: 'relative', flex: 1, minWidth: '300px' }}>
           <Search size={18} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: textSecondary }} />
-          <input 
-            className="form-input" 
-            placeholder="ابحث عن عميل، قطاع، أو مدينة..." 
+          <input
+            className="form-input"
+            placeholder="ابحث عن عميل، قطاع، أو مدينة..."
             style={{ paddingRight: '48px', height: '48px', background: isDark ? 'rgba(0,0,0,0.2)' : '#fff' }}
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
@@ -135,8 +140,8 @@ export default function ClientsList({ filter }) {
         {/* Sort */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '13px', color: textSecondary, fontWeight: 500 }}><SlidersHorizontal size={14} /> ترتيب حسب:</span>
-          <select 
-            className="form-input" 
+          <select
+            className="form-input"
             style={{ width: '140px', height: '44px', fontSize: '13px', padding: '0 12px' }}
             value={sortBy}
             onChange={e => setSortBy(e.target.value)}
@@ -163,7 +168,7 @@ export default function ClientsList({ filter }) {
           </thead>
           <motion.tbody variants={container} initial="hidden" animate="show">
             {filteredClients.map(client => (
-              <motion.tr 
+              <motion.tr
                 key={client.id}
                 variants={item}
                 whileHover={{ background: isDark ? 'rgba(255,255,255,0.01)' : 'rgba(79, 142, 247, 0.02)' }}
@@ -177,16 +182,16 @@ export default function ClientsList({ filter }) {
                   <span style={{ fontSize: '14px', color: textSecondary }}>{client.sector}</span>
                 </td>
                 <td style={{ padding: '16px 24px' }}>
-                   {(() => {
-                     const score = client.total_score || 0;
-                     const { label, textColor } = getScoreLabel(score);
-                     return (
-                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                         <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: `${textColor}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: textColor }}>{score}</div>
-                         <span style={{ fontSize: '12px', fontWeight: 600, color: textSecondary }}>{label}</span>
-                       </div>
-                     );
-                   })()}
+                  {(() => {
+                    const score = client.total_score || 0;
+                    const { label, textColor } = getScoreLabel(score);
+                    return (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: `${textColor}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: textColor }}>{score}</div>
+                        <span style={{ fontSize: '12px', fontWeight: 600, color: textSecondary }}>{label}</span>
+                      </div>
+                    );
+                  })()}
                 </td>
                 <td style={{ padding: '16px 24px' }}>
                   <span className={`badge ${getStageClass(client.stage)}`} style={{ fontSize: '12px', fontWeight: 700 }}>{client.stage}</span>
@@ -205,7 +210,7 @@ export default function ClientsList({ filter }) {
             ))}
           </motion.tbody>
         </table>
-        
+
         {filteredClients.length === 0 && !loading && (
           <div style={{ padding: '60px', textAlign: 'center' }}>
             <div style={{ fontSize: '48px', filter: 'grayscale(1)', opacity: 0.2, marginBottom: '16px' }}>📂</div>
@@ -218,10 +223,14 @@ export default function ClientsList({ filter }) {
         isOpen={!!showConfirm}
         onClose={() => setShowConfirm(null)}
         onConfirm={async () => {
-          await fetch(`/api/clients/${showConfirm}`, { method: 'DELETE' });
-          setClients(prev => prev.filter(c => c.id !== showConfirm));
-          setShowConfirm(null);
-          addToast('تم حذف العميل بنجاح', 'info');
+          try {
+            await fetch(API_URL(`/api/clients/${showConfirm}`), { method: 'DELETE' });
+            setClients(prev => prev.filter(c => c.id !== showConfirm));
+            setShowConfirm(null);
+            addToast('تم حذف العميل بنجاح', 'info');
+          } catch (error) {
+            addToast('فشل حذف العميل', 'error');
+          }
         }}
         title="حذف البيانات؟"
         message="سيقوم هذا الإجراء بحذف العميل وكافة سجلاته نهائياً."
