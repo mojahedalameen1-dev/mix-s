@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Trophy, User, X, Clock, Calendar } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Trophy, User, X, Clock, Calendar, Target } from 'lucide-react';
 
 /* ─────────────────────────── CONSTANTS & UTILS ─────────────────────────── */
 export const FONT = "'IBM Plex Sans Arabic', sans-serif";
@@ -429,10 +429,16 @@ export function PerformanceProgressChart({ currentData, allMonthsData, totalTarg
 
 /* ─────────────────────────── FASTEST DEALS ─────────────────────────── */
 export function FastestDeals({ data, isDark }) {
+    const [activeTab, setActiveTab] = useState('deals');
     const C = { border: isDark ? 'rgba(255,255,255,0.06)' : '#E2E8F0', text: isDark ? '#F8FAFC' : '#1E293B', muted: isDark ? '#94A3B8' : '#64748B' };
 
-    const deals = useMemo(() => {
-        return data.map(r => {
+    const { deals, repStats, typeStats, globalAvg } = useMemo(() => {
+        let validDeals = 0;
+        let totalDays = 0;
+        const repMap = {};
+        const typeMap = {};
+
+        const processedDeals = data.map(r => {
             const d1 = parseDate(r.__first_contact);
             const d2 = parseDate(r.__date);
             if (d1 && d2) {
@@ -440,14 +446,51 @@ export function FastestDeals({ data, isDark }) {
                 const diffTime = d2.getTime() - d1.getTime();
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                 if (diffDays > 0) {
+                    validDeals++;
+                    totalDays += diffDays;
+
+                    if (r.__sales) {
+                        if (!repMap[r.__sales]) repMap[r.__sales] = { sum: 0, count: 0, deals: 0 };
+                        repMap[r.__sales].sum += diffDays;
+                        repMap[r.__sales].count++;
+                        repMap[r.__sales].deals++;
+                    }
+                    if (r.__type) {
+                        if (!typeMap[r.__type]) typeMap[r.__type] = { sum: 0, count: 0, deals: 0 };
+                        typeMap[r.__type].sum += diffDays;
+                        typeMap[r.__type].count++;
+                        typeMap[r.__type].deals++;
+                    }
+
                     return { ...r, __daysToClose: diffDays };
                 }
             }
             return null;
-        }).filter(Boolean).sort((a, b) => a.__daysToClose - b.__daysToClose).slice(0, 5);
+        }).filter(Boolean);
+
+        const sortedDeals = [...processedDeals].sort((a, b) => a.__daysToClose - b.__daysToClose).slice(0, 5);
+
+        const reps = Object.entries(repMap).map(([name, stat]) => ({
+            name,
+            avg: stat.sum / stat.count,
+            dealsCount: stat.deals
+        })).sort((a, b) => a.avg - b.avg).slice(0, 5);
+
+        const types = Object.entries(typeMap).map(([name, stat]) => ({
+            name,
+            avg: stat.sum / stat.count,
+            dealsCount: stat.deals
+        })).sort((a, b) => a.avg - b.avg).slice(0, 5);
+
+        return {
+            deals: sortedDeals,
+            repStats: reps,
+            typeStats: types,
+            globalAvg: validDeals > 0 ? totalDays / validDeals : 0
+        };
     }, [data]);
 
-    if (deals.length < 3) {
+    if (deals.length < 2) {
         return (
             <div style={{ textAlign: 'center', padding: '60px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
                 <div style={{ width: 48, height: 48, borderRadius: '50%', background: isDark ? 'rgba(255,255,255,0.02)' : '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -458,32 +501,113 @@ export function FastestDeals({ data, isDark }) {
         );
     }
 
-    const avg = deals.reduce((s, d) => s + d.__daysToClose, 0) / deals.length;
+    const tabs = [
+        { id: 'deals', label: 'العقود' },
+        { id: 'reps', label: 'المتصدريين' },
+        { id: 'types', label: 'التصنيفات' }
+    ];
+
+    const formatDays = (d) => {
+        const rounded = Math.round(d);
+        if (rounded === 1) return 'يوم';
+        if (rounded === 2) return 'يومين';
+        if (rounded <= 10) return `${rounded} أيام`;
+        return `${rounded} يوم`;
+    };
 
     return (
         <div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {deals.map((d, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: isDark ? 'rgba(255,255,255,0.02)' : '#F8FAFC', borderRadius: 12, border: `1px solid ${C.border}`, transition: 'all 0.2s' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <div style={{ width: 34, height: 34, borderRadius: '50%', background: i === 0 ? 'rgba(245,158,11,0.15)' : (isDark ? 'rgba(255,255,255,0.04)' : '#E2E8F0'), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                {i === 0 ? <Trophy size={16} color="#F59E0B" /> : <span style={{ fontSize: 13, color: C.muted, fontWeight: 700 }}>{i + 1}</span>}
-                            </div>
-                            <div>
-                                <div style={{ fontSize: 14, fontWeight: 800, color: C.text, fontFamily: FONT }}>{d.__name}</div>
-                                <div style={{ fontSize: 12, color: C.muted, fontFamily: FONT, marginTop: 3 }}>{d.__sales} {d.__type && `• ${d.__type}`}</div>
-                            </div>
-                        </div>
-                        <div style={{ textAlign: 'left', minWidth: 80 }}>
-                            <div style={{ fontSize: 13, fontWeight: 800, color: '#10B981', fontFamily: FONT, letterSpacing: '-0.5px' }}>{fmtSAR(d.__amount)}</div>
-                            <div style={{ fontSize: 12, color: '#F59E0B', fontWeight: 700, fontFamily: FONT, marginTop: 3 }}>في {d.__daysToClose} {d.__daysToClose === 1 ? 'يوم' : d.__daysToClose === 2 ? 'يومين' : d.__daysToClose <= 10 ? 'أيام' : 'يوم'}</div>
-                        </div>
-                    </div>
+            {/* Tabs Header */}
+            <div style={{ display: 'flex', background: isDark ? 'rgba(255,255,255,0.03)' : '#F1F5F9', borderRadius: 12, padding: 4, marginBottom: 16 }}>
+                {tabs.map(t => (
+                    <button
+                        key={t.id}
+                        onClick={() => setActiveTab(t.id)}
+                        style={{
+                            flex: 1, padding: '8px', border: 'none', borderRadius: 8,
+                            background: activeTab === t.id ? (isDark ? 'rgba(79,142,247,0.2)' : 'white') : 'transparent',
+                            color: activeTab === t.id ? '#4F8EF7' : C.muted,
+                            fontWeight: activeTab === t.id ? 700 : 500,
+                            fontSize: 13, fontFamily: FONT, cursor: 'pointer',
+                            boxShadow: activeTab === t.id && !isDark ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        {t.label}
+                    </button>
                 ))}
             </div>
+
+            <div style={{ minHeight: 330 }}>
+                <AnimatePresence mode="popLayout">
+                    <motion.div
+                        key={activeTab}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        transition={{ duration: 0.2 }}
+                        style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+                    >
+                        {activeTab === 'deals' && deals.map((d, i) => (
+                            <div key={`d-${i}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: isDark ? 'rgba(255,255,255,0.02)' : '#F8FAFC', borderRadius: 12, border: `1px solid ${C.border}` }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <div style={{ width: 34, height: 34, borderRadius: '50%', background: i === 0 ? 'rgba(245,158,11,0.15)' : (isDark ? 'rgba(255,255,255,0.04)' : '#E2E8F0'), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        {i === 0 ? <Trophy size={16} color="#F59E0B" /> : <span style={{ fontSize: 13, color: C.muted, fontWeight: 700 }}>{i + 1}</span>}
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: 14, fontWeight: 800, color: C.text, fontFamily: FONT }}>{d.__name}</div>
+                                        <div style={{ fontSize: 12, color: C.muted, fontFamily: FONT, marginTop: 3 }}>{d.__sales} {d.__type && `• ${d.__type}`}</div>
+                                    </div>
+                                </div>
+                                <div style={{ textAlign: 'left', minWidth: 80 }}>
+                                    <div style={{ fontSize: 13, fontWeight: 800, color: '#10B981', fontFamily: FONT, letterSpacing: '-0.5px' }}>{fmtSAR(d.__amount)}</div>
+                                    <div style={{ fontSize: 12, color: '#F59E0B', fontWeight: 700, fontFamily: FONT, marginTop: 3 }}>في {formatDays(d.__daysToClose)}</div>
+                                </div>
+                            </div>
+                        ))}
+
+                        {activeTab === 'reps' && repStats.map((r, i) => (
+                            <div key={`r-${i}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: isDark ? 'rgba(255,255,255,0.02)' : '#F8FAFC', borderRadius: 12, border: `1px solid ${C.border}` }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <div style={{ width: 34, height: 34, borderRadius: '50%', background: i === 0 ? 'rgba(16,185,129,0.15)' : (isDark ? 'rgba(255,255,255,0.04)' : '#E2E8F0'), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                        {i === 0 ? <Trophy size={16} color="#10B981" /> : <span style={{ fontSize: 13, color: C.muted, fontWeight: 700 }}>{i + 1}</span>}
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: 14, fontWeight: 800, color: C.text, fontFamily: FONT }}>{r.name}</div>
+                                        <div style={{ fontSize: 12, color: C.muted, fontFamily: FONT, marginTop: 3 }}>أغلق {r.dealsCount} عقد</div>
+                                    </div>
+                                </div>
+                                <div style={{ textAlign: 'left', minWidth: 80 }}>
+                                    <div style={{ fontSize: 14, fontWeight: 800, color: i === 0 ? '#10B981' : C.text, fontFamily: FONT }}>{formatDays(r.avg)}</div>
+                                    <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, fontFamily: FONT, marginTop: 2 }}>كمتوسط إغلاق</div>
+                                </div>
+                            </div>
+                        ))}
+
+                        {activeTab === 'types' && typeStats.map((t, i) => (
+                            <div key={`t-${i}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: isDark ? 'rgba(255,255,255,0.02)' : '#F8FAFC', borderRadius: 12, border: `1px solid ${C.border}` }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <div style={{ width: 34, height: 34, borderRadius: '10px', background: i === 0 ? 'rgba(79,142,247,0.15)' : (isDark ? 'rgba(255,255,255,0.04)' : '#E2E8F0'), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                        <Target size={18} color={i === 0 ? "#4F8EF7" : C.muted} />
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: 14, fontWeight: 800, color: C.text, fontFamily: FONT }}>{t.name}</div>
+                                        <div style={{ fontSize: 12, color: C.muted, fontFamily: FONT, marginTop: 3 }}>{t.dealsCount} مشاريع مباعة</div>
+                                    </div>
+                                </div>
+                                <div style={{ textAlign: 'left', minWidth: 80 }}>
+                                    <div style={{ fontSize: 14, fontWeight: 800, color: i === 0 ? '#4F8EF7' : C.text, fontFamily: FONT }}>{formatDays(t.avg)}</div>
+                                    <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, fontFamily: FONT, marginTop: 2 }}>كمتوسط إغلاق</div>
+                                </div>
+                            </div>
+                        ))}
+                    </motion.div>
+                </AnimatePresence>
+            </div>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, padding: '12px 16px', borderRadius: 12, background: isDark ? 'rgba(79, 142, 247, 0.05)' : '#EFF6FF', border: isDark ? '1px solid rgba(79, 142, 247, 0.1)' : 'none' }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#93C5FD' : '#1E3A8A', fontFamily: FONT }}>متوسط الإغلاق التنافسي:</span>
-                <span style={{ fontSize: 14, fontWeight: 800, color: '#4F8EF7', fontFamily: FONT }}>{Math.round(avg)} يوم</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#93C5FD' : '#1E3A8A', fontFamily: FONT }}>متوسط الإغلاق التنافسي (إجمالي):</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: '#4F8EF7', fontFamily: FONT }}>{formatDays(globalAvg)}</span>
             </div>
         </div>
     );
