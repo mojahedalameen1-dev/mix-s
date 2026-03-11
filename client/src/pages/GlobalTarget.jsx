@@ -90,8 +90,19 @@ export default function GlobalTarget() {
             if (headerIdx === -1) throw new Error('لم يتم العثور على هيكل الجدول الصحيح');
 
             // Dynamic detection of keys
-            const exactKey = (keys, exactName) => keys.find(k => k.trim() === exactName);
-            const findKey = (keys, ...needles) => keys.find(k => needles.some(n => k.includes(n)));
+            const prioKey = (keys, prioritizedNeedles) => {
+                // First pass: look for exact matches
+                for (const needle of prioritizedNeedles) {
+                    const exact = keys.find(k => k.trim() === needle);
+                    if (exact) return exact;
+                }
+                // Second pass: look for partial matches in order of priority
+                for (const needle of prioritizedNeedles) {
+                    const partial = keys.find(k => k.includes(needle));
+                    if (partial) return partial;
+                }
+                return null;
+            };
 
             let excludedCount = 0;
             const parsedRows = [];
@@ -116,7 +127,8 @@ export default function GlobalTarget() {
                 const row = {};
                 headers.forEach((h, idx) => { if (h) row[h] = cells[idx] || ''; });
 
-                const nameKey = findKey(Object.keys(row), 'اسم العميل');
+                const keys = Object.keys(row);
+                const nameKey = prioKey(keys, ['اسم العميل حسب العقد', 'اسم العميل']);
                 const name = row[nameKey] || '';
 
                 if (!name || /(^|\s)(المجموع|الإجمالي|اجمالي|مجموع|total)(\s|$)/i.test(name)) {
@@ -130,21 +142,23 @@ export default function GlobalTarget() {
                     continue;
                 }
 
-                const amountKey = exactKey(Object.keys(row), 'المبلغ') || findKey(Object.keys(row), 'المبلغ', 'الدفع الاولى');
-                const netAmountKey = findKey(Object.keys(row), 'صافي المبلغ', 'صافي');
+                const amountKey = prioKey(keys, ['المبلغ', 'الدفع الاولى']);
+                const netAmountKey = prioKey(keys, ['صافي المبلغ', 'صافي']);
 
                 const amount = parseFloat((row[amountKey] || '0').replace(/[^\d.-]/g, '')) || 0;
                 const netAmount = parseFloat((row[netAmountKey] || '0').replace(/[^\d.-]/g, '')) || amount / 1.15;
                 if (amount === 0 && netAmount === 0) continue;
 
                 parsedRows.push({
-                    '__name': name, '__amount': amount, '__net_amount': netAmount,
-                    '__source': row[findKey(Object.keys(row), 'المصدر')] || '',
-                    '__type': row[findKey(Object.keys(row), 'نوع المشروع')] || '',
-                    '__sales': row[findKey(Object.keys(row), 'مطور اعمال', 'المبيعات')] || '',
-                    '__team': row[findKey(Object.keys(row), 'الفريق')] || '',
-                    '__date': row[findKey(Object.keys(row), 'تاريخ التحويل', 'تاريخ', 'تاريخ الدفعة')] || '',
-                    '__phone': row[findKey(Object.keys(row), 'الجوال', 'رقم')] || '',
+                    '__name': name,
+                    '__amount': amount,
+                    '__net_amount': netAmount,
+                    '__source': row[prioKey(keys, ['المصدر'])] || '',
+                    '__type': row[prioKey(keys, ['نوع المشروع'])] || '',
+                    '__sales': row[prioKey(keys, ['مطور اعمال', 'المبيعات'])] || '',
+                    '__team': row[prioKey(keys, ['الفريق'])] || '',
+                    '__date': row[prioKey(keys, ['تاريخ التحويل', 'تاريخ الدفعة', 'تاريخ'])] || '',
+                    '__phone': row[prioKey(keys, ['الجوال', 'رقم'])] || '',
                     ...row
                 });
             }

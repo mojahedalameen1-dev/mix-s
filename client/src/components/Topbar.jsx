@@ -22,17 +22,22 @@ export default function Topbar({ isMobile, setIsMobileOpen }) {
       try {
         const res = await fetch(API_URL('/api/clients'));
         if (res.ok) {
-          const data = await res.json();
-          const today = new Date().toISOString().split('T')[0];
+          const contentType = res.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const data = await res.json();
+            const today = new Date().toISOString().split('T')[0];
 
-          const dueToday = data.filter(client => {
-            if (!client.next_action_date) return false;
-            // Check if it's strictly due today (or overdue compared to current local time, but mostly matching today's date)
-            const nextAction = new Date(client.next_action_date).toISOString().split('T')[0];
-            return nextAction === today;
-          });
+            const dueToday = data.filter(client => {
+              if (!client.next_action_date) return false;
+              // Check if it's strictly due today (or overdue compared to current local time, but mostly matching today's date)
+              const nextAction = new Date(client.next_action_date).toISOString().split('T')[0];
+              return nextAction === today;
+            });
 
-          setDueTodayDeals(dueToday);
+            setDueTodayDeals(dueToday);
+          } else {
+             console.warn('Topbar expected JSON from /api/clients, received:', contentType);
+          }
         }
       } catch (err) {
         console.error('Error fetching today followups for topbar:', err);

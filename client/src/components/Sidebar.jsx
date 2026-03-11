@@ -25,20 +25,25 @@ export default function Sidebar({ isCollapsed, setIsCollapsed, isMobile, isMobil
       try {
         const res = await fetch(API_URL('/api/clients'));
         if (res.ok) {
-          const data = await res.json();
-          const staleThreshold = new Date();
-          staleThreshold.setDate(staleThreshold.getDate() - 5);
+          const contentType = res.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const data = await res.json();
+            const staleThreshold = new Date();
+            staleThreshold.setDate(staleThreshold.getDate() - 5);
 
-          let staleCount = 0;
-          data.forEach(client => {
-            if (client.stage === 'تفاوض') {
-              const lastContact = client.last_contact_date ? new Date(client.last_contact_date) : new Date(client.created_at);
-              if (lastContact < staleThreshold) {
-                staleCount++;
+            let staleCount = 0;
+            data.forEach(client => {
+              if (client.stage === 'تفاوض') {
+                const lastContact = client.last_contact_date ? new Date(client.last_contact_date) : new Date(client.created_at);
+                if (lastContact < staleThreshold) {
+                  staleCount++;
+                }
               }
-            }
-          });
-          setOverdueDealsCount(staleCount);
+            });
+            setOverdueDealsCount(staleCount);
+          } else {
+             console.warn('Sidebar expected JSON from /api/clients, received:', contentType);
+          }
         }
       } catch (err) {
         console.error('Error fetching stats for sidebar:', err);
