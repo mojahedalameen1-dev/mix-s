@@ -703,7 +703,7 @@ export default function GlobalTarget() {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                                     <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}><TrendingUp size={20} color="#10B981" /> مسار تحقيق الهدف - {activeSheetDef?.name}</h3>
                                 </div>
-                                <PerformanceProgressChart currentData={allData} allMonthsData={Object.entries(historicData).map(([gid, data]) => ({ name: sheets.find(s => s.gid === gid)?.name, data }))} totalTarget={GLOBAL_TARGET} isDark={isDark} activeSheetName={activeSheetDef?.name} />
+                                <PerformanceProgressChart currentData={allData} allMonthsData={sheets.map(s => ({ name: s.name, data: historicData[s.gid] || [] }))} totalTarget={GLOBAL_TARGET} isDark={isDark} activeSheetName={activeSheetDef?.name} />
                             </div>
                             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 24, padding: 24, flex: 1 }}>
                                 <BestDayWidget data={allData} isDark={isDark} />
