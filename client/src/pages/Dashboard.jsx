@@ -54,7 +54,7 @@ export default function Dashboard() {
   });
   const [targetInput, setTargetInput] = useState(monthlyTarget);
 
-  const currentMonthName = new Date().toLocaleString('ar-SA', { month: 'long' });
+  const currentMonthName = new Date().toLocaleString('en-US', { month: 'long' });
 
   useEffect(() => {
     fetchData();
