@@ -631,6 +631,7 @@ export default function GlobalTarget() {
                                 {bdrLeaderboard.length === 0 ? <p style={{ color: C.muted, textAlign: 'center' }}>لا توجد عقود بعد</p> : (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                                         {bdrLeaderboard.map((rep, i) => {
+                                            const activeDaysLeft = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate();
                                             const pct = (rep.total / REP_TARGET) * 100;
                                             const needsAlert = isCurrentMonth && activeDaysLeft <= 10 && pct < 40;
                                             const hitTarget = pct >= 100;
