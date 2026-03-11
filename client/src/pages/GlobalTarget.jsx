@@ -141,14 +141,18 @@ export default function GlobalTarget() {
                 const amountKey = prioKey(keys, ['المبلغ', 'الدفع الاولى']);
                 const netAmountKey = prioKey(keys, ['صافي المبلغ', 'صافي']);
 
-                const amount = parseFloat((row[amountKey] || '0').replace(/[^\d.-]/g, '')) || 0;
-                const netAmount = parseFloat((row[netAmountKey] || '0').replace(/[^\d.-]/g, '')) || amount / 1.15;
-                if (amount === 0 && netAmount === 0) continue;
+                const grossAmount = parseFloat((row[amountKey] || '0').replace(/[^\d.-]/g, '')) || 0;
+                let netAmount = parseFloat((row[netAmountKey] || '0').replace(/[^\d.-]/g, '')) || 0;
+                if (!netAmount && grossAmount) {
+                    netAmount = grossAmount / 1.15;
+                }
+
+                if (grossAmount === 0 && netAmount === 0) continue;
 
                 parsedRows.push({
                     '__name': name,
-                    '__amount': amount,
-                    '__net_amount': netAmount,
+                    '__amount': netAmount,
+                    '__gross_amount': grossAmount,
                     '__source': row[prioKey(keys, ['المصدر'])] || '',
                     '__type': row[prioKey(keys, ['نوع المشروع'])] || '',
                     '__sales': row[prioKey(keys, ['مطور اعمال', 'المبيعات'])] || '',
@@ -274,8 +278,7 @@ export default function GlobalTarget() {
     const activeSheetDef = sheets.find(s => s.gid === activeGid);
     const isCurrentMonth = activeSheetDef?.gid === sheets[sheets.length - 1]?.gid; // Dynamically newest month
 
-    const totalAmount = useMemo(() => allData.reduce((s, r) => s + (r.__net_amount || 0), 0), [allData]);
-    const totalGrossAmount = useMemo(() => allData.reduce((s, r) => s + r.__amount, 0), [allData]);
+    const totalAmount = useMemo(() => allData.reduce((s, r) => s + (r.__amount || 0), 0), [allData]);
     const achievementPct = (totalAmount / GLOBAL_TARGET) * 100;
     const remaining = Math.max(0, GLOBAL_TARGET - totalAmount);
 
@@ -295,27 +298,31 @@ export default function GlobalTarget() {
         daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
         
         let validPastMonthsCount = 0;
-        let sumHistoricalRatios = 0;
+        let sumPastUpToDay = 0;
+        let sumPastTotals = 0;
         let pastMonthsNames = [];
 
-        // Calculate Historical Ratios for weighted forecast
+        // Calculate True Historical Averages
         if (currIdx > 0) {
             for (let j = 0; j < currIdx; j++) {
                 const pSheet = sheets[j];
                 const pData = historicData[pSheet.gid];
                 if (pData && pData.length > 0) {
                     let pUpToDay = 0;
+                    let pTotal = 0;
                     pData.forEach(r => {
+                        const amt = r.__amount || 0;
+                        pTotal += amt;
                         const d = parseDate(r.__date);
                         if (d && d.getDate() <= daysElapsed) {
-                            pUpToDay += (r.__net_amount || 0);
+                            pUpToDay += amt;
                         }
                     });
                     
-                    const pctOfTarget = pUpToDay / GLOBAL_TARGET;
-                    sumHistoricalRatios += pctOfTarget;
+                    sumPastUpToDay += pUpToDay;
+                    sumPastTotals += pTotal;
                     validPastMonthsCount++;
-                    pastMonthsNames.push(pSheet.name.replace(/\D/g, '').trim() || pSheet.name.split(' ')[0]);
+                    pastMonthsNames.push(pSheet.name);
                 }
             }
         }
@@ -323,13 +330,13 @@ export default function GlobalTarget() {
         let projected = 0;
         let usedHistorical = false;
 
-        if (validPastMonthsCount > 0) {
-            historicalAvgRatio = sumHistoricalRatios / validPastMonthsCount;
-            historicalAvgExpectedAmount = historicalAvgRatio * GLOBAL_TARGET;
+        if (validPastMonthsCount > 0 && sumPastUpToDay > 0) {
+            const historicalAvgUpToDay = sumPastUpToDay / validPastMonthsCount;
+            const historicalAvgTotal = sumPastTotals / validPastMonthsCount;
             
-            if (daysElapsed >= 7 && historicalAvgRatio > 0) {
-                const currentRatio = totalAmount / GLOBAL_TARGET;
-                projected = (currentRatio / historicalAvgRatio) * GLOBAL_TARGET;
+            if (daysElapsed >= 4) { // Give it at least 4 days to be meaningful
+                const performanceRatio = totalAmount / historicalAvgUpToDay;
+                projected = performanceRatio * historicalAvgTotal;
                 usedHistorical = true;
             }
         }
@@ -340,12 +347,16 @@ export default function GlobalTarget() {
             projected = dailyAvg * daysInMonth;
         }
 
+        // Expose historical avg up to today
+        const histAvgUpToDay = (validPastMonthsCount > 0 && sumPastUpToDay > 0) ? (sumPastUpToDay / validPastMonthsCount) : 0;
+
         forecast = { 
             projected, 
             usedHistorical, 
             daysElapsed, 
             daysInMonth, 
             dailyAvg,
+            histAvgUpToDay,
             pastMonthsNames: pastMonthsNames.slice(-2).join(' و ')
         };
 
@@ -416,10 +427,10 @@ export default function GlobalTarget() {
         }
 
         // Priority 4
-        const histDayAvg = historicalAvgExpectedAmount > 0 ? historicalAvgExpectedAmount : forecast?.dailyAvg * daysElapsed;
+        const histDayAvg = forecast?.histAvgUpToDay > 0 ? forecast.histAvgUpToDay : forecast?.dailyAvg * daysElapsed;
         return `متوسطكم التاريخي لهذا اليوم ${fmtSAR(histDayAvg)} — المتوقع بنهاية الشهر ${fmtSAR(forecast?.projected || 0)}`;
 
-    }, [achievementPct, isCurrentMonth, momGapPct, daysElapsed, daysInMonth, remaining, forecast, historicalAvgExpectedAmount]);
+    }, [achievementPct, isCurrentMonth, momGapPct, daysElapsed, daysInMonth, remaining, forecast]);
 
     /* ── Charts Data ── */
     const chartData = useMemo(() => {
