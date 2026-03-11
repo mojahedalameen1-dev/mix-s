@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight, Edit3, Trash2, Calendar, MapPin, Briefcase,
   ChevronDown, ChevronUp, FileText, Download, Trash,
-  Sparkles, ListChecks, Map as MapIcon, CalendarDays, Printer, UploadCloud
+  Sparkles, ListChecks, Map as MapIcon, CalendarDays, Printer, UploadCloud, Hash
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../components/ToastProvider';
@@ -246,6 +246,22 @@ export default function ClientDetail() {
                     <span style={{ color: textSecondary, display: 'flex', alignItems: 'center', gap: '8px' }}><CalendarDays size={16} /> موعد المتابعة القادم</span>
                     <span style={{ fontWeight: 700, color: isOverdue(client.next_followup_date) ? '#EF4444' : '#10B981' }}>{formatDate(client.next_followup_date)}</span>
                   </div>
+                  {client.ticket_link && (
+                    <div style={{ padding: '16px', background: isDark ? 'rgba(124, 58, 237, 0.05)' : '#F5F3FF', borderRadius: '12px', marginTop: '12px' }}>
+                      <div style={{ color: textSecondary, fontSize: '12px', marginBottom: '8px' }}>رابط التكت</div>
+                      <a href={client.ticket_link} target="_blank" rel="noreferrer" style={{ color: '#7C3AED', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {client.ticket_link} <ArrowRight size={14} />
+                      </a>
+                    </div>
+                  )}
+                  {client.slack_code && (
+                    <div style={{ padding: '16px', background: isDark ? 'rgba(79, 142, 247, 0.05)' : '#F0F7FF', borderRadius: '12px', marginTop: '12px' }}>
+                      <div style={{ color: textSecondary, fontSize: '12px', marginBottom: '8px' }}>كود السلاك</div>
+                      <div style={{ color: '#4F8EF7', fontWeight: 800, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Hash size={20} /> {client.slack_code}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {client.notes && (

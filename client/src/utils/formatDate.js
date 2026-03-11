@@ -2,9 +2,9 @@ export function formatDate(dateStr) {
   if (!dateStr) return '—';
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return dateStr;
-  return date.toLocaleDateString('ar-SA', {
+  return date.toLocaleDateString('en-GB', {
     year: 'numeric',
-    month: 'long',
+    month: 'short',
     day: 'numeric',
   });
 }

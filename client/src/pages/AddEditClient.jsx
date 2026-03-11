@@ -59,7 +59,7 @@ const defaultForm = {
   client_name: '', client_type: 'شركة', city: 'الرياض', sector: 'تجارة',
   channel: 'واتساب', notes: '', deal_name: '', expected_value: '', payment_percentage: 0.50,
   stage: 'جديد', last_contact_date: new Date().toISOString().split('T')[0],
-  next_followup_date: '', budget_score: 0, authority_score: 0,
+  next_followup_date: '', ticket_link: '', slack_code: '', budget_score: 0, authority_score: 0,
   need_score: 0, timeline_score: 0, fit_score: 0,
 };
 
@@ -100,6 +100,8 @@ export default function AddEditClient() {
             stage: data.stage || 'جديد',
             last_contact_date: data.last_contact_date || '',
             next_followup_date: data.next_followup_date || '',
+            ticket_link: data.ticket_link || '',
+            slack_code: data.slack_code || '',
             budget_score: data.budget_score || 0,
             authority_score: data.authority_score || 0,
             need_score: data.need_score || 0,
@@ -291,6 +293,16 @@ export default function AddEditClient() {
               <div>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: textSecondary, marginBottom: '10px' }}>موعد المتابعة القادم</label>
                 <input className="form-input" type="date" value={form.next_followup_date} onChange={e => set('next_followup_date', e.target.value)} />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: textSecondary, marginBottom: '10px' }}>رابط التكت (Ticket URL)</label>
+                <input className="form-input" placeholder="https://..." value={form.ticket_link} onChange={e => set('ticket_link', e.target.value)} />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: textSecondary, marginBottom: '10px' }}>كود السلاك (Slack Code)</label>
+                <input className="form-input" placeholder="SL-123" value={form.slack_code} onChange={e => set('slack_code', e.target.value)} />
               </div>
 
               <div style={{ gridColumn: '1/-1' }}>

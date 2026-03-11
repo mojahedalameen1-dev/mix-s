@@ -8,7 +8,7 @@ import { API_URL } from '../utils/apiConfig';
 import { formatSAR } from '../utils/formatSAR';
 import { daysDiff } from '../utils/formatDate';
 import SkeletonLoader from '../components/SkeletonLoader';
-import { Phone, MessageCircle, XCircle, PlusCircle, Target, Trophy, X, AlertCircle } from 'lucide-react';
+import { Phone, MessageCircle, XCircle, PlusCircle, Target, Trophy, X, AlertCircle, ExternalLink, Hash } from 'lucide-react';
 
 const STAGES = [
   { id: 'تفاوض', label: 'التقفيل (Closing)', color: '#4F8EF7', icon: Target },
@@ -183,6 +183,34 @@ export default function Pipeline() {
             <AlertCircle size={12} /> <span style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}> ⏰ متأخر {daysDiff(client.last_contact_date || client.created_at)} أيام</span>
           </div>
         )}
+
+        {/* Ticket and Slack Header */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+          {client.ticket_link && (
+            <a 
+              href={client.ticket_link} 
+              target="_blank" rel="noreferrer"
+              style={{ 
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                padding: '8px', borderRadius: '10px', background: 'rgba(124, 58, 237, 0.1)', 
+                color: '#7C3AED', fontSize: '12px', fontWeight: 700, textDecoration: 'none', border: '1px solid rgba(124, 58, 237, 0.2)'
+              }}
+            >
+              <ExternalLink size={14} /> رابط التكت
+            </a>
+          )}
+          {client.slack_code && (
+            <div 
+              style={{ 
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                padding: '8px', borderRadius: '10px', background: 'rgba(79, 142, 247, 0.1)', 
+                color: '#4F8EF7', fontSize: '12px', fontWeight: 700, border: '1px solid rgba(79, 142, 247, 0.2)'
+              }}
+            >
+              <Hash size={14} /> {client.slack_code}
+            </div>
+          )}
+        </div>
 
         {/* Row 1: Client Name highly visible */}
         <div

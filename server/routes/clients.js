@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
       .select(`
         *,
         deals!deals_client_id_fkey (
-          id, deal_name, expected_value, payment_percentage, stage, last_contact_date, next_followup_date
+          id, deal_name, expected_value, payment_percentage, stage, last_contact_date, next_followup_date, ticket_link, slack_code
         ),
         scores!scores_client_id_fkey (
           budget_score, authority_score, need_score, timeline_score, fit_score, total_score
@@ -35,7 +35,9 @@ router.get('/', async (req, res) => {
       need_score: c.scores?.[0]?.need_score,
       timeline_score: c.scores?.[0]?.timeline_score,
       fit_score: c.scores?.[0]?.fit_score,
-      total_score: c.scores?.[0]?.total_score
+      total_score: c.scores?.[0]?.total_score,
+      ticket_link: c.deals?.[0]?.ticket_link,
+      slack_code: c.deals?.[0]?.slack_code
     }));
 
     res.json(flattened);
@@ -98,6 +100,7 @@ router.post('/', async (req, res) => {
   const {
     client_name, phone, client_type, city, sector, channel, notes,
     deal_name, expected_value, payment_percentage, stage, last_contact_date, next_followup_date,
+    ticket_link, slack_code,
     budget_score, authority_score, need_score, timeline_score, fit_score
   } = req.body;
 
@@ -124,7 +127,9 @@ router.post('/', async (req, res) => {
         payment_percentage: payment_percentage != null ? payment_percentage : 0.50, 
         stage: stage || 'جديد', 
         last_contact_date: last_contact_date || '', 
-        next_followup_date: next_followup_date || '' 
+        next_followup_date: next_followup_date || '',
+        ticket_link: ticket_link || '',
+        slack_code: slack_code || ''
       }]);
 
     if (dealErr) throw dealErr;
