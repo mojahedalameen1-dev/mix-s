@@ -42,7 +42,7 @@ router.get('/', async (req, res) => {
 
     res.json(flattened);
   } catch (err) {
-    console.error('Fetch clients error:', err);
+    console.error('Fetch clients error:', JSON.stringify(err, null, 2));
     res.status(500).json({ error: 'حدث خطأ أثناء تحميل بيانات العملاء' });
   }
 });

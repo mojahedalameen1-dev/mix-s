@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
     if (error) throw error;
     res.json(preps);
   } catch (error) {
-    console.error('Error fetching meeting preps:', error);
+    console.error('Error fetching meeting preps:', JSON.stringify(error, null, 2));
     res.status(500).json({ error: 'Failed to fetch meeting preps' });
   }
 });
@@ -33,7 +33,7 @@ router.get('/:id', async (req, res) => {
     }
     res.json(prep);
   } catch (error) {
-    console.error('Error fetching meeting prep:', error);
+    console.error('Error fetching meeting prep:', JSON.stringify(error, null, 2));
     res.status(500).json({ error: 'Failed to fetch meeting prep' });
   }
 });
