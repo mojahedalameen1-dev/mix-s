@@ -1,14 +1,15 @@
 const express = require('express');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const axios = require('axios');
 const router = express.Router();
 const supabase = require('../supabase');
 
 router.post('/', async (req, res) => {
-  const GROQ_API_KEY = process.env.GROQ_API_KEY;
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   const { prep_id, title, client_name, sector, idea_raw } = req.body;
 
-  if (!GROQ_API_KEY) {
-    return res.status(500).json({ error: 'مفتاح Groq API غير متوفر في الخادم.' });
+  if (!GEMINI_API_KEY) {
+    return res.status(500).json({ error: 'مفتاح Gemini API غير متوفر في الخادم.' });
   }
 
   if (!idea_raw || !title) {
@@ -16,7 +17,10 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const systemInstruction = `أنت العقل الاستراتيجي (Strategic Brain) لمنظومة Sales Focus AI.
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.0-flash",
+      systemInstruction: `أنت العقل الاستراتيجي (Strategic Brain) لمنظومة Sales Focus AI.
 أجب بصيغة JSON فقط وبدقة متناهية وبدون مقدمات. استخدم مفردات البزنس السعودي.
 الهيكل المطلوب:
 {
@@ -25,7 +29,8 @@ router.post('/', async (req, res) => {
   "meeting_plan": { "opening": "...", "next_step": "..." },
   "discovery_questions": { "business": [], "technical": [], "scope": [] },
   "user_journeys": [ { "user_type": "...", "steps": [] } ]
-}`;
+}`,
+    });
 
     const userPrompt = `بيانات الاجتماع:
 - العنوان: ${title}
@@ -35,22 +40,12 @@ router.post('/', async (req, res) => {
 
 نفذ التحليل الاستراتيجي الآن وقدم التقرير بصيغة JSON.`;
 
-    const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-      model: 'llama-3.3-70b-versatile',
-      messages: [
-        { role: 'system', content: systemInstruction },
-        { role: 'user', content: userPrompt }
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.7
-    }, {
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json'
-      }
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+      generationConfig: { responseMimeType: "application/json" }
     });
 
-    let analysis = response.data.choices[0].message.content;
+    let analysis = result.response.text();
     if (typeof analysis === 'string') {
       analysis = JSON.parse(analysis);
     }
@@ -69,10 +64,10 @@ router.post('/', async (req, res) => {
     res.json(analysis);
 
   } catch (error) {
-    console.error('Groq API Error (Prep Hub):', error.response?.data || error.message);
+    console.error('Gemini API Error (Prep Hub):', error.message);
     res.status(500).json({ 
-      error: 'حدث خطأ أثناء التواصل مع Groq.',
-      details: error.response?.data || error.message
+      error: 'حدث خطأ أثناء التواصل مع الذكاء الاصطناعي.',
+      details: error.message
     });
   }
 });

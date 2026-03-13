@@ -1,4 +1,5 @@
 const express = require('express');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const axios = require('axios');
 const router = express.Router();
 const path = require('path');
@@ -21,11 +22,11 @@ try {
 
 // AI Proposal Text Generation
 router.post('/', async (req, res) => {
-  const GROQ_API_KEY = process.env.GROQ_API_KEY;
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   const { text } = req.body;
 
-  if (!GROQ_API_KEY) {
-    return res.status(500).json({ error: 'مفتاح Groq API غير متوفر في الخادم.' });
+  if (!GEMINI_API_KEY) {
+    return res.status(500).json({ error: 'مفتاح Gemini API غير متوفر في الخادم.' });
   }
 
   if (!text) {
@@ -33,14 +34,18 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const systemInstruction = `أنت خبير تقني واستراتيجي متخصص في إعداد العروض الفنية الاحترافية للمشاريع البرمجية. مهمتك تحويل تفريغ الاجتماع أو التفاصيل المدخلة إلى عرض فني متكامل وجاهز للعرض على العميل مباشرةً.
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.0-flash",
+      systemInstruction: `أنت خبير تقني واستراتيجي متخصص في إعداد العروض الفنية الاحترافية للمشاريع البرمجية. مهمتك تحويل تفريغ الاجتماع أو التفاصيل المدخلة إلى عرض فني متكامل وجاهز للعرض على العميل مباشرةً.
 
 التعليمات الإلزامية:
 - اعتمد على المرحلة الأولى من المشروع فقط ما لم يُحدَّد غير ذلك.
 - النص مفصّل، شامل، ولا يُغفل أي نقطة.
 - الأسلوب: رسمي، احترافي، مباشر — كأنك تخاطب صاحب قرار.
-- لا تكتب أي تعليقات جانبية، ولا ملاحظات، ولا مقدمات أو خواتيم (مثل "إليك العرض"). أخرج النتيجة فقط.
-- استنتج المعلومات المنطقية الناقصة بذكاء، أو اكتب (تُحدد لاحقاً).
+- لا تكتب أي تعليقات جانبية، ولا ملاحظات، ولا مقدمات أو خواتيم. أخرج النتيجة فقط.
+- يجب ملء كل خلية في الجداول وكل نقطة في العرض بناءً على السياق. إذا كانت المعلومة ناقصة، قم باستنتاجها بذكاء احترافي أو استخدم "يُحدد لاحقاً".
+- يمنع منعاً باتاً ترك خلايا فارغة أو استخدام كلمة "undefined".
 - استخدم صيغة Markdown، وتأكد من بناء الجداول بشكل صحيح.
 
 نموذج العرض الفني (يجب الالتزام بهذا الهيكل حرفياً):
@@ -48,16 +53,16 @@ router.post('/', async (req, res) => {
 ### نموذج العمل المقترح (Business Logic)
 | الحقل | التفاصيل |
 |---|---|
-| نوع المشروع | |
-| نشاط المشروع | |
-| لغة المشروع | |
-| مكونات المشروع | |
-| النطاق الجغرافي | |
-| الشريحة المستهدفة | |
+| نوع المشروع | [حدد نوعه: متجر، منصة، تطبيق، إلخ] |
+| نشاط المشروع | [حدد المجال بدقة] |
+| لغة المشروع | [العربية كأساس، مع ذكر الإنجليزية إن لزم] |
+| مكونات المشروع | [التطبيقات، اللوحات، إلخ] |
+| النطاق الجغرافي | [المملكة العربية السعودية، أو حسب السياق] |
+| الشريحة المستهدفة | [حدد الفئة بدقة] |
 
 ### وصف المشروع والنطاق العام (Project Understanding & Scope)
 A. وصف المشروع:
-المشروع عبارة عن [وصف شامل ومفصّل يعكس طبيعة المنصة أو التطبيق، مجاله، وآلية عمله الجوهرية]
+[وصف شامل ومفصّل يعكس طبيعة المنصة أو التطبيق، مجاله، وآلية عمله الجوهرية]
 
 B. الأهداف الاستراتيجية:
 [اذكر الأهداف الاستراتيجية بصيغة نقاط واضحة تبدأ بأفعال: السيطرة على / تمكين / تسريع / رفع / خفض...]
@@ -85,32 +90,30 @@ A. هيكلية المستخدمين (System Actors):
 ### التقييم والتكلفة والجدول الزمني
 | البند | التفاصيل |
 |---|---|
-| التقييم | |
-| التكلفة | |
-| مدة العمل | |`;
+| التقييم | [تقييم فني مختصر] |
+| التكلفة | [اكتب "حسب المتفق عليه" أو استنتجها إذا ذُكرت] |
+| مدة العمل | [مدة منطقية بالأسابيع أو الشهور] |
 
-    const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-      model: 'llama-3.3-70b-versatile',
-      messages: [
-        { role: 'system', content: systemInstruction },
-        { role: 'user', content: text }
-      ],
-      temperature: 0.7
-    }, {
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json'
-      }
+بعد الانتهاء من النص أعلاه، أضف فوراً كتلة JSON برمجية تحتوي على البيانات المهيكلة لاستخدامها في النظام البرمجي، يجب أن تكون داخل وسم \` \` \`json وتتبع الهيكل التالي بدقة:
+{
+  "strategicGoals": [{"name": "..."}],
+  "actors": [{"name": "..."}],
+  "features": [{"name": "..."}],
+  "journeys": [{"name": "..."}],
+  "adminFeatures": [{"name": "..."}]
+}
+تأكد من استخراج أهم النقاط من النص وتوزيعها على هذه المصفوفات.`,
     });
 
-    const proposal = response.data.choices[0].message.content;
+    const result = await model.generateContent(text);
+    const proposal = result.response.text();
     res.json({ success: true, proposal });
 
   } catch (error) {
-    console.error('Groq API Error (Proposals):', error.response?.data || error.message);
+    console.error('Gemini API Error (Proposals):', error.message);
     res.status(500).json({ 
       error: 'حدث خطأ أثناء الاتصال بنموذج الذكاء الاصطناعي.',
-      details: error.response?.data || error.message
+      details: error.message
     });
   }
 });

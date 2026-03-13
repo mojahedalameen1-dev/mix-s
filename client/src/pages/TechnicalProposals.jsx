@@ -85,8 +85,34 @@ export default function TechnicalProposals() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'حدث خطأ في الاتصال');
 
-      setFormData(prev => ({ ...prev, proposalText: data.proposal }));
-      parseAIProposal(data.proposal);
+      // Robust JSON Extraction
+      const fullText = data.proposal;
+      const jsonMatch = fullText.match(/```json\s*([\s\S]*?)\s*```/);
+      
+      let cleanProposal = fullText;
+      let aiStructuredData = null;
+
+      if (jsonMatch) {
+        try {
+          aiStructuredData = JSON.parse(jsonMatch[1]);
+          cleanProposal = fullText.replace(jsonMatch[0], '').trim();
+        } catch (e) {
+          console.error('Failed to parse AI JSON:', e);
+        }
+      }
+
+      setFormData(prev => ({ ...prev, proposalText: cleanProposal }));
+      
+      if (aiStructuredData) {
+        setStructuredData({
+          strategicGoals: aiStructuredData.strategicGoals || [],
+          actors: aiStructuredData.actors || [],
+          features: aiStructuredData.features || [],
+          journeys: aiStructuredData.journeys || [],
+          adminFeatures: aiStructuredData.adminFeatures || []
+        });
+      }
+
       addToast('تم إنشاء العرض الفني بنجاح', 'success');
     } catch (err) {
       addToast(err.message || 'حدث خطأ أثناء معالجة الطلب', 'error');
@@ -95,20 +121,6 @@ export default function TechnicalProposals() {
     }
   };
 
-  const parseAIProposal = (text) => {
-    // Simple parser to extract points for docxtemplater loops
-    // In a real app, this would be more robust or handled by AI directly returning JSON
-    const goals = text.match(/الأهداف الاستراتيجية:([\s\S]*?)C\./i)?.[1]?.match(/- .+/g)?.map(s => ({ name: s.replace('- ', '').trim() })) || [];
-    const actors = text.match(/هيكلية المستخدمين:([\s\S]*?)سيناريو/i)?.[1]?.match(/- .+/g)?.map(s => ({ name: s.replace('- ', '').trim() })) || [];
-    
-    setStructuredData({
-      strategicGoals: goals,
-      actors: actors,
-      features: [{ name: 'نظام إدارة كامل' }, { name: 'لوحة تحكم احترافية' }], // Mocking for now or better parsing
-      journeys: [{ name: 'تسجيل الدخول' }, { name: 'تصفح الخدمات' }, { name: 'إتمام الطلب' }],
-      adminFeatures: [{ name: 'إدارة العملاء' }, { name: 'إدارة التقارير' }]
-    });
-  };
 
   const handleExport = async (type) => {
     if (!formData.clientName) {
@@ -284,7 +296,14 @@ export default function TechnicalProposals() {
                       <div><span className="opacity-50">الفئات:</span> {structuredData.actors.length}</div>
                     </div>
                   </div>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    className="prose prose-invert max-w-none text-right 
+                      prose-table:w-full prose-table:border-collapse prose-table:my-6
+                      prose-th:border prose-th:border-white/10 prose-th:bg-white/5 prose-th:p-3 prose-th:text-blue-400
+                      prose-td:border prose-td:border-white/10 prose-td:p-3 prose-td:text-gray-300
+                      prose-headings:text-blue-400 prose-p:text-gray-300 prose-li:text-gray-300"
+                  >
                     {formData.proposalText}
                   </ReactMarkdown>
                 </div>
