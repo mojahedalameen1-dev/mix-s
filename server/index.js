@@ -1,15 +1,16 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
-const dotenv = require('dotenv');
-
-// Load environment variables
-try {
-  dotenv.config(); // Loads from process.cwd()
-  dotenv.config({ path: path.join(__dirname, '.env') }); // Loads from /server/.env
-  dotenv.config({ path: path.join(__dirname, '..', '.env') }); // Loads from root/.env
-} catch (e) {
-  console.warn('Dotenv loading skipped or failed (common in Vercel):', e.message);
+// Load environment variables (only in non-production)
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    const path = require('path');
+    const dotenv = require('dotenv');
+    dotenv.config(); // Loads from process.cwd()
+    dotenv.config({ path: path.join(__dirname, '.env') }); // Loads from /server/.env
+    dotenv.config({ path: path.join(__dirname, '..', '.env') }); // Loads from root/.env
+  } catch (e) {
+    console.warn('Dotenv loading skipped or failed:', e.message);
+  }
 }
 const fs = require('fs');
 
@@ -51,24 +52,24 @@ app.use('/api/analyze-prep', require('./routes/analyzePrep'));
 app.use('/api/proposals', require('./routes/proposals'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 
-// Health check
-app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
-
-// Debug Status (Environmental check for Vercel/Production)
-app.get('/api/debug-status', (req, res) => {
+// Health-Check Endpoint (Self-Diagnostic System)
+app.get('/api/health', (req, res) => {
   res.json({
-    status: 'checking',
-    env: process.env.NODE_ENV || 'not set',
-    isVercel: process.env.VERCEL === '1',
-    config: {
-      supabaseUrl: !!process.env.SUPABASE_URL,
-      supabaseAnonKey: !!process.env.SUPABASE_ANON_KEY,
-      geminiKey: !!process.env.GEMINI_API_KEY,
-      port: process.env.PORT || 'default 5000'
-    },
-    timestamp: new Date().toISOString()
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    isVercel: !!process.env.VERCEL,
+    diagnostics: {
+      supabaseUrlLoaded: !!process.env.SUPABASE_URL,
+      supabaseAnonKeyLoaded: !!process.env.SUPABASE_ANON_KEY,
+      geminiKeyLoaded: !!process.env.GEMINI_API_KEY,
+      convertApiLoaded: !!process.env.CONVERTAPI_SECRET
+    }
   });
 });
+
+// Remove old debug routes if any or keep for compatibility
+app.get('/api/debug-status', (req, res) => res.redirect('/api/health'));
 
 if (require.main === module) {
   app.listen(PORT, () => {

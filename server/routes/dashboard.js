@@ -116,8 +116,9 @@ router.get('/stats', async (req, res) => {
         console.error('Dashboard Auth/Stats Error:', err);
         res.status(500).json({ 
             error: 'حدث خطأ أثناء تحميل إحصائيات لوحة التحكم',
-            details: err.message || 'Unknown error',
-            code: err.code
+            details: err.message,
+            stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+            failedAt: 'Supabase Dashboard Stats'
         });
     }
 });

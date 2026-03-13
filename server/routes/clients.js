@@ -45,8 +45,9 @@ router.get('/', async (req, res) => {
     console.error('Fetch clients error:', err);
     res.status(500).json({ 
       error: 'حدث خطأ أثناء تحميل بيانات العملاء',
-      details: err.message || 'Unknown error',
-      code: err.code
+      details: err.message,
+      stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+      failedAt: 'Supabase Clients Fetch'
     });
   }
 });

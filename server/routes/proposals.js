@@ -205,7 +205,12 @@ router.post('/generate-pdf', async (req, res) => {
     res.send(Buffer.from(pdfResponse.data));
   } catch (error) {
     console.error('Error generating PDF:', error);
-    res.status(500).json({ error: 'حدث خطأ أثناء توليد ملف PDF.', details: error.message });
+    res.status(500).json({ 
+      error: 'حدث خطأ أثناء توليد ملف PDF',
+      details: error.message,
+      stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined,
+      failedAt: 'PDF Conversion/Generation'
+    });
   }
 });
 

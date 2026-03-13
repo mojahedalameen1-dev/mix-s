@@ -74,8 +74,10 @@ router.post('/', async (req, res) => {
   } catch (error) {
     console.error('Analysis error:', error);
     res.status(500).json({ 
-      error: 'فشل تحليل التحضير. يرجى المحاولة مرة أخرى.',
-      details: error.message || 'Unknown error'
+      error: 'فشل تحليل التحضير عبر الذكاء الاصطناعي',
+      details: error.message,
+      stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined,
+      failedAt: 'Gemini AI Prep Analysis'
     });
   }
 });
