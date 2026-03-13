@@ -38,7 +38,12 @@ router.get('/:clientId', async (req, res) => {
     if (error) throw error;
     res.json(files);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ 
+      error: 'حدث خطأ أثناء تحميل ملفات العميل',
+      details: err.message,
+      stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+      failedAt: 'Supabase files Fetch'
+    });
   }
 });
 
@@ -60,7 +65,12 @@ router.post('/:clientId', upload.single('file'), async (req, res) => {
     if (error) throw error;
     res.json(file);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ 
+      error: 'حدث خطأ أثناء رفع الملف',
+      details: err.message,
+      stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+      failedAt: 'Supabase/Multer file Upload'
+    });
   }
 });
 
@@ -77,7 +87,12 @@ router.get('/download/:fileId', async (req, res) => {
     const filePath = path.join(uploadsDir, file.file_path);
     res.download(filePath, file.file_name);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ 
+      error: 'حدث خطأ أثناء تحميل الملف',
+      details: err.message,
+      stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+      failedAt: 'File System download'
+    });
   }
 });
 
@@ -102,7 +117,12 @@ router.delete('/:fileId', async (req, res) => {
     if (delErr) throw delErr;
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ 
+      error: 'حدث خطأ أثناء حذف الملف',
+      details: err.message,
+      stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+      failedAt: 'Supabase/File System delete'
+    });
   }
 });
 

@@ -15,9 +15,10 @@ router.get('/', async (req, res) => {
   } catch (error) {
     console.error('Error fetching meeting preps:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch meeting preps',
-      details: error.message || 'Unknown error',
-      code: error.code
+      error: 'حدث خطأ أثناء تحميل التحضيرات',
+      details: error.message,
+      stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined,
+      failedAt: 'Supabase meeting_preps Fetch'
     });
   }
 });
@@ -37,8 +38,13 @@ router.get('/:id', async (req, res) => {
     }
     res.json(prep);
   } catch (error) {
-    console.error('Error fetching meeting prep:', JSON.stringify(error, null, 2));
-    res.status(500).json({ error: 'Failed to fetch meeting prep' });
+    console.error('Error fetching meeting prep:', error);
+    res.status(500).json({ 
+      error: 'حدث خطأ أثناء تحميل التحضير',
+      details: error.message,
+      stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined,
+      failedAt: 'Supabase single meeting_prep Fetch'
+    });
   }
 });
 
@@ -69,7 +75,12 @@ router.post('/', async (req, res) => {
     res.status(201).json({ id: result.id });
   } catch (error) {
     console.error('Error creating meeting prep:', error);
-    res.status(500).json({ error: 'Failed to create meeting prep' });
+    res.status(500).json({ 
+      error: 'حدث خطأ أثناء إنشاء التحضير',
+      details: error.message,
+      stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined,
+      failedAt: 'Supabase meeting_prep Create'
+    });
   }
 });
 
@@ -114,7 +125,12 @@ router.put('/:id', async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Error updating meeting prep:', error);
-    res.status(500).json({ error: 'Failed to update meeting prep' });
+    res.status(500).json({ 
+      error: 'حدث خطأ أثناء تحديث التحضير',
+      details: error.message,
+      stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined,
+      failedAt: 'Supabase meeting_prep Update'
+    });
   }
 });
 
@@ -126,7 +142,12 @@ router.delete('/:id', async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting meeting prep:', error);
-    res.status(500).json({ error: 'Failed to delete meeting prep' });
+    res.status(500).json({ 
+      error: 'حدث خطأ أثناء حذف التحضير',
+      details: error.message,
+      stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined,
+      failedAt: 'Supabase meeting_prep Delete'
+    });
   }
 });
 
