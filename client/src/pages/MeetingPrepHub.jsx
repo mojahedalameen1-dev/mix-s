@@ -49,7 +49,7 @@ export default function MeetingPrepHub() {
   const [showDelete, setShowDelete] = useState(false);
 
   // Tabs State
-  const [activeTab, setActiveTab] = useState('info'); // 'info', 'strategy', 'admin', 'questions', 'journey'
+
 
   // Form states (synced with prepData)
   const [formData, setFormData] = useState({});
@@ -437,41 +437,8 @@ export default function MeetingPrepHub() {
 
               {isAnalyzing && <div className="no-print"><SkeletonLoader type="ai_analysis" /></div>}
 
-              {/* TABS NAVIGATION */}
-              {prepData.analysis_result && !isAnalyzing && prepData.analysis_result !== '{}' && (
-                <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2 mb-6 no-print" style={{ borderBottom: `1px solid ${border}` }}>
-                  {[
-                    { id: 'info', label: '📋 فكرة المشروع' },
-                    { id: 'strategy', label: '📝 الرسالة الاستراتيجية' },
-                    { id: 'admin', label: '⚙️ لوحة التحكم' },
-                    { id: 'questions', label: '❓ منطق العمل' },
-                    { id: 'journey', label: '🗺️ رحلة المستخدم' }
-                  ].map(tab => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      style={{
-                        padding: '12px 20px',
-                        background: activeTab === tab.id ? (isDark ? 'rgba(79, 142, 247, 0.1)' : '#EFF6FF') : 'transparent',
-                        color: activeTab === tab.id ? '#4F8EF7' : textSecondary,
-                        border: 'none',
-                        borderBottom: activeTab === tab.id ? '2px solid #4F8EF7' : '2px solid transparent',
-                        cursor: 'pointer',
-                        fontFamily: "'IBM Plex Sans Arabic', sans-serif",
-                        fontSize: '15px',
-                        fontWeight: activeTab === tab.id ? 800 : 600,
-                        whiteSpace: 'nowrap',
-                        flexShrink: 0,
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-              )}
 
-              {/* Section C: Analysis Result (TAB-BASED VIEW) */}
+
               {prepData.analysis_result && !isAnalyzing && (() => {
                 try {
                   const analysis = typeof prepData.analysis_result === 'string'
@@ -479,20 +446,19 @@ export default function MeetingPrepHub() {
                     : prepData.analysis_result;
 
                   if (!analysis || Object.keys(analysis).length === 0) return null;
+
                   return (
                     <div className="printable-results" id="report-print-container">
-                      {/* ======================= PAGE 0: COVER PAGE (LEGENDARY) ======================= */}
+                      {/* --- COVER PAGE (Print Only) --- */}
                       <div className="print-cover-page">
                         <div className="print-cover-logo-section">
                           <div className="print-cover-title">SALES FOCUS</div>
                           <div className="print-cover-subtitle">Intelligence Hub</div>
                         </div>
-
                         <div className="print-cover-main-header">
                           <h1 className="print:text-[36pt] print:font-black print:m-0">{formData.title || 'تقرير تحضير استراتيجي'}</h1>
                           <div className="print:text-[18pt] print:font-bold print:mt-4">تحضير اجتماع استراتيجي</div>
                         </div>
-
                         <div className="print-cover-details">
                           <div className="print-detail-row">
                             <span className="print-detail-label">العميل المستهدف:</span>
@@ -507,282 +473,227 @@ export default function MeetingPrepHub() {
                             <span>{formData.meeting_date ? formatDate(formData.meeting_date) : 'غير محدد'}</span>
                           </div>
                         </div>
-
                         <div className="print-cover-footer">
                           هذا التقرير سري وخاص بمنتسبي منظومة Sales Focus AI فقط.
                         </div>
                       </div>
 
-
-                      {/* PAGE 1: EXECUTIVE STRATEGY (Tab: info / strategy) */}
-                      {(activeTab === 'info' || activeTab === 'strategy') && (
-                        <>
-                          <div className="print-header print:flex print:justify-between print:items-end print:border-b-[4pt] print:border-black print:pb-6 print:mb-10 print:mt-10 hidden print:block">
+                      {/* --- SECTION 1: PROJECT IDEA & SCOPE --- */}
+                      <div className="glass-card mb-10 avoid-break" style={{ padding: '32px', borderTop: '4px solid #4F8EF7' }}>
+                        <h4 className="text-xl font-extrabold mb-8 flex items-center gap-3" style={{ color: '#4F8EF7' }}>
+                          <Briefcase size={26} /> تحليل فكرة المشروع ونطاق العمل (Project Scope)
+                        </h4>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                          <div className="lg:col-span-2">
+                            <div className="p-6 rounded-2xl mb-8" style={{ background: isDark ? 'rgba(79, 142, 247, 0.05)' : '#F0F7FF', border: `1px solid ${border}` }}>
+                              <span className="font-black block mb-4 text-lg" style={{ color: textPrimary }}>ملخص الفكرة والرؤية:</span>
+                              <p className="text-base leading-relaxed" style={{ color: textSecondary, whiteSpace: 'pre-wrap' }}>
+                                {analysis.project_idea?.summary || analysis.business_analysis?.main_goal}
+                              </p>
+                            </div>
                             <div>
-                              <div className="print:text-[24pt] print:font-black print:tracking-tighter">SALES FOCUS</div>
-                              <div className="print:text-[14pt] print:font-bold print:mt-1">تقرير تحضير اجتماع استراتيجي (Strategic Dossier)</div>
-                            </div>
-                            <div className="print:text-left print:text-[10pt] print:flex print:flex-col print:items-end">
-                              <div className="print:font-black print:bg-black print:text-white print:px-2 print:py-1 print:mb-1">PREP ID: {String(prepData.id).padStart(4, '0')}</div>
-                              <div className="print:font-bold">{`${String(new Date().getDate()).padStart(2, '0')}/${String(new Date().getMonth() + 1).padStart(2, '0')}/${new Date().getFullYear()}`}</div>
-                              <div className="print:text-[8pt] print:mt-1 print:opacity-70 font-mono">CONFIDENTIAL / نظام سيلز فوكس</div>
-                            </div>
-                          </div>
-
-                          {/* Strategic Message (Hero Section) */}
-                          <div className="glass-card mb-8 avoid-break print:border-[3pt] print:border-black print:p-8 print:my-8" style={{ border: '4pt solid #000', padding: '30px' }}>
-                            <h4 className="print:text-[12pt] print:font-black print:text-black print:mb-4 print:uppercase">الرسالة الاستراتيجية الكبرى (Main Strategy)</h4>
-                            <p className="print:text-[22pt] print:font-black print:leading-tight print:text-black">{analysis.meeting_plan?.key_message}</p>
-                          </div>
-
-                          {/* Business Summary & Platforms */}
-                          <div className="grid grid-cols-1 xl:grid-cols-5 gap-6 mb-8 print:grid-cols-2 print:gap-8 avoid-break">
-                              <h4 className="text-lg font-extrabold mb-5 flex items-center gap-2" style={{ color: '#4F8EF7' }}>
-                                <Briefcase size={20} /> فكرة المشروع والميزات
-                              </h4>
-                              <div className="flex flex-col gap-5">
-                                <div className="p-4 rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,0.02)' : '#F8FAFF' }}>
-                                  <span className="font-extrabold block mb-2" style={{ color: textPrimary }}>ملخص الفكرة:</span>
-                                  <span className="text-sm leading-relaxed" style={{ color: textSecondary }}>{analysis.project_idea?.summary || analysis.business_analysis?.main_goal}</span>
-                                </div>
-                                <div>
-                                  <span className="font-extrabold block mb-2" style={{ color: textPrimary }}>الميزات الأساسية (Core Features):</span>
-                                  <ul className="list-disc pr-5 flex flex-col gap-2">
-                                    {(analysis.project_idea?.core_features || []).map((feat, i) => (
-                                      <li key={i} className="text-sm" style={{ color: textSecondary }}>{feat}</li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              </div>
-
-                            <div className="glass-card avoid-break p-6 md:p-7 xl:col-span-2 print:col-span-1 print:border-none print:shadow-none print:p-0">
-                              <h4 className="text-lg font-extrabold mb-5 flex items-center gap-2" style={{ color: '#7C3AED' }}>
-                                <Users size={20} /> الفئات والمنصات
-                              </h4>
-                              <div className="flex flex-col gap-6">
-                                <div>
-                                  <span style={{ fontSize: '13px', fontWeight: 700, color: textMuted, display: 'block', marginBottom: '12px' }}>المستخدمون المستهدفون</span>
-                                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                    {analysis.business_analysis?.target_users?.map((u, i) => <span key={i} className="badge" style={{ background: isDark ? 'rgba(124,58,237,0.1)' : '#EDE9FE', color: '#7C3AED', padding: '6px 12px' }}>{u}</span>)}
+                              <span className="font-black block mb-4 text-lg" style={{ color: textPrimary }}>الميزات الأساسية والوظائف (Core Features):</span>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {(analysis.project_idea?.core_features || []).map((feat, i) => (
+                                  <div key={i} className="flex gap-3 items-start p-4 rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,0.02)' : '#F9FBFF', border: `1px solid ${border}` }}>
+                                    <CheckCircle2 size={18} className="mt-1 flex-shrink-0" style={{ color: '#4F8EF7' }} />
+                                    <span className="text-sm font-bold" style={{ color: textSecondary }}>{feat}</span>
                                   </div>
-                                </div>
-                                <div>
-                                  <span style={{ fontSize: '13px', fontWeight: 700, color: textMuted, display: 'block', marginBottom: '12px' }}>المنصات المتوقعة</span>
-                                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                    {analysis.business_analysis?.expected_platforms?.map((p, i) => <span key={i} className="badge" style={{ background: isDark ? 'rgba(79,142,247,0.1)' : '#EFF6FF', color: '#4F8EF7', padding: '6px 12px' }}>{p}</span>)}
-                                  </div>
-                                </div>
+                                ))}
                               </div>
                             </div>
                           </div>
-
-                          {/* Strategic Steps & Plan */}
-                          <div className="avoid-break mb-8" style={{
-                            padding: '32px',
-                            background: isDark ? 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.05))' : 'linear-gradient(135deg, #F0FDF4, #F8FAFC)',
-                            border: '2px solid #10B981',
-                            borderRadius: '24px',
-                            boxShadow: '0 8px 30px rgba(16, 185, 129, 0.15)',
-                            position: 'relative'
-                          }}>
-                            <div style={{ position: 'absolute', top: '-16px', right: '32px', background: '#10B981', color: '#fff', padding: '8px 20px', borderRadius: '50px', fontSize: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)' }}>
-                              <CalendarDays size={18} /> أهم ما يجب قوله في الاجتماع
-                            </div>
-
-                            <h4 className="text-xl font-extrabold mb-8 mt-2 text-emerald-600 dark:text-emerald-400">
-                              خطة تسيير الاجتماع
-                            </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-                              <div>
-                                <div style={{ marginBottom: '24px' }}>
-                                  <span style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: '#10B981', textTransform: 'uppercase', marginBottom: '12px' }}>جملة الافتتاح المقترحة</span>
-                                  <p style={{ fontSize: '20px', fontWeight: 700, color: textPrimary, lineHeight: '1.7', fontStyle: 'italic', paddingRight: '16px', borderRight: '4px solid #10B981' }}>"{analysis.meeting_plan?.opening}"</p>
-                                </div>
+                          <div className="flex flex-col gap-8">
+                            <div className="p-6 rounded-2xl" style={{ background: isDark ? 'rgba(124,58,237,0.05)' : '#F5F3FF', border: `1px solid ${border}` }}>
+                              <h5 className="font-black mb-4 flex items-center gap-2" style={{ color: '#7C3AED' }}>
+                                <Users size={20} /> الفئات المستهدفة
+                              </h5>
+                              <div className="flex flex-wrap gap-2">
+                                {analysis.business_analysis?.target_users?.map((u, i) => (
+                                  <span key={i} className="px-3 py-1.5 rounded-lg text-xs font-black" style={{ background: '#7C3AED22', color: '#7C3AED' }}>{u}</span>
+                                ))}
                               </div>
-                              <div>
-                                <div style={{ padding: '24px', background: isDark ? 'rgba(16,185,129,0.1)' : '#ECFDF5', borderRadius: '16px', border: '1px dashed #10B981' }}>
-                                  <span style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: '#10B981', textTransform: 'uppercase', marginBottom: '12px' }}>الخطوة القادمة (Call to Action)</span>
-                                  <p style={{ fontSize: '18px', fontWeight: 700, color: textPrimary }}>{analysis.meeting_plan?.next_step}</p>
-                                </div>
+                            </div>
+                            <div className="p-6 rounded-2xl" style={{ background: isDark ? 'rgba(79, 142, 247, 0.05)' : '#EFF6FF', border: `1px solid ${border}` }}>
+                              <h5 className="font-black mb-4 flex items-center gap-2" style={{ color: '#4F8EF7' }}>
+                                <MapIcon size={20} /> المنصات المتوقعة
+                              </h5>
+                              <div className="flex flex-wrap gap-2">
+                                {analysis.business_analysis?.expected_platforms?.map((p, i) => (
+                                  <span key={i} className="px-3 py-1.5 rounded-lg text-xs font-black" style={{ background: '#4F8EF722', color: '#4F8EF7' }}>{p}</span>
+                                ))}
                               </div>
                             </div>
                           </div>
-                        </>
-                      )}
+                        </div>
+                      </div>
 
-                      {/* PAGE: Admin Panel (Tab: admin) */}
-                      {activeTab === 'admin' && (
-                        <div className="glass-card avoid-break overflow-hidden mb-8 p-0 mt-4">
-                          <div className="px-6 py-5 md:px-8 md:py-6 border-b" style={{ background: isDark ? 'rgba(255,255,255,0.02)' : '#F5F3FF', borderColor: border }}>
-                            <h4 className="text-lg md:text-xl font-extrabold flex items-center gap-3" style={{ color: '#7C3AED' }}>
-                              <Settings size={24} /> لوحة الإدارة والتحكم (Admin Panel)
-                            </h4>
+                      {/* --- SECTION 2: MEETING PLAN & STRATEGY --- */}
+                      <div className="avoid-break mb-10" style={{
+                        padding: '32px',
+                        background: isDark ? 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.05))' : 'linear-gradient(135deg, #F0FDF4, #F8FAFC)',
+                        border: '2px solid #10B981',
+                        borderRadius: '24px',
+                        boxShadow: '0 8px 30px rgba(16, 185, 129, 0.15)',
+                        position: 'relative'
+                      }}>
+                        <div style={{ position: 'absolute', top: '-16px', right: '32px', background: '#10B981', color: '#fff', padding: '8px 20px', borderRadius: '50px', fontSize: '14px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <CalendarDays size={18} /> أهم ما يجب قوله في الاجتماع
+                        </div>
+                        <h4 className="text-xl font-extrabold mb-8 mt-2 text-emerald-600 dark:text-emerald-400">خطة تسيير الاجتماع</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div>
+                            <span style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: '#10B981', textTransform: 'uppercase', marginBottom: '12px' }}>جملة الافتتاح المقترحة</span>
+                            <p style={{ fontSize: '18px', fontWeight: 700, color: textPrimary, lineHeight: '1.7', fontStyle: 'italic', paddingRight: '16px', borderRight: '4px solid #10B981' }}>"{analysis.meeting_plan?.opening}"</p>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x md:divide-x-reverse" style={{ borderColor: border }}>
-                            {[
-                              { key: 'user_management', label: 'إدارة المستخدمين والصلاحيات', icon: <Users size={18}/> },
-                              { key: 'operations_management', label: 'إدارة العمليات والطلبات', icon: <ClipboardList size={18}/> },
-                              { key: 'settings_content', label: 'الإعدادات والمحتوى', icon: <Settings size={18}/> },
-                              { key: 'financial_reports', label: 'التقارير المالية والتشغيلية', icon: <BarChart3 size={18}/> }
-                            ].map((sec, idx) => (
-                              <div key={idx} style={{ padding: '32px', borderLeft: (idx % 2 === 0) ? `1px solid ${border}` : 'none', borderBottom: idx < 2 ? `1px solid ${border}` : 'none' }}>
-                                <h5 style={{ fontSize: '16px', fontWeight: 800, color: '#7C3AED', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  {sec.icon} {sec.label}
+                          <div style={{ padding: '24px', background: isDark ? 'rgba(16,185,129,0.1)' : '#ECFDF5', borderRadius: '16px', border: '1px dashed #10B981' }}>
+                            <span style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: '#10B981', textTransform: 'uppercase', marginBottom: '12px' }}>الخطوة القادمة (Call to Action)</span>
+                            <p style={{ fontSize: '16px', fontWeight: 700, color: textPrimary }}>{analysis.meeting_plan?.next_step}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* --- SECTION 3: ADMIN PANEL --- */}
+                      <div className="glass-card avoid-break overflow-hidden mb-10 p-0" style={{ borderTop: '4px solid #7C3AED' }}>
+                        <div className="px-8 py-6 border-b" style={{ background: isDark ? 'rgba(255,255,255,0.02)' : '#F5F3FF', borderColor: border }}>
+                          <h4 className="text-xl font-extrabold flex items-center gap-3" style={{ color: '#7C3AED' }}>
+                            <Settings size={26} /> هيكلة لوحة التحكم والإدارة (Admin Panel)
+                          </h4>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x md:divide-x-reverse" style={{ borderColor: border }}>
+                          {[
+                            { key: 'user_management', label: 'إدارة المستخدمين والصلاحيات', icon: <Users size={18}/> },
+                            { key: 'operations_management', label: 'إدارة العمليات والطلبات', icon: <ClipboardList size={18}/> },
+                            { key: 'settings_content', label: 'الإعدادات والمحتوى', icon: <Settings size={18}/> },
+                            { key: 'financial_reports', label: 'التقارير المالية والتشغيلية', icon: <BarChart3 size={18}/> }
+                          ].map((sec, idx) => (
+                            <div key={idx} style={{ padding: '32px', borderLeft: idx % 2 === 0 ? `1px solid ${border}` : 'none', borderBottom: idx < 2 ? `1px solid ${border}` : 'none' }}>
+                              <h5 style={{ fontSize: '16px', fontWeight: 900, color: '#7C3AED', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                {sec.icon} {sec.label}
+                              </h5>
+                              <ul className="flex flex-col gap-3">
+                                {(analysis.admin_panel?.[sec.key] || []).map((item, i) => (
+                                  <li key={i} className="flex gap-2 items-start text-sm" style={{ color: textSecondary }}>
+                                    <div style={{ width: '6px', height: '6px', background: '#7C3AED', borderRadius: '50%', marginTop: '6px', flexShrink: 0 }} />
+                                    {item}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* --- SECTION 4: DISCOVERY QUESTIONS --- */}
+                      <div className="glass-card avoid-break overflow-hidden mb-10 p-0" style={{ borderTop: '4px solid #4F8EF7' }}>
+                        <div className="px-8 py-6 border-b" style={{ background: isDark ? 'rgba(255,255,255,0.02)' : '#F9FBFF', borderColor: border }}>
+                          <h4 className="text-xl font-extrabold flex items-center gap-3" style={{ color: '#4F8EF7' }}>
+                            <ListChecks size={26} /> أسئلة تحديد الـ Workflow والمنهجية
+                          </h4>
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x lg:divide-x-reverse" style={{ borderColor: border }}>
+                          {[
+                            { key: 'workflows', label: 'سير العمليات (Workflows)', color: '#4F8EF7' },
+                            { key: 'edge_cases', label: 'الحالات الاستثنائية (Edge Cases)', color: '#EF4444' },
+                            { key: 'integrations', label: 'الربط الخارجي (Integrations)', color: '#7C3AED' },
+                            { key: 'permissions', label: 'الاعتمادات والصلاحيات', color: '#F59E0B' }
+                          ].map((cat, idx) => {
+                            const questions = analysis.technical_workflow_questions?.[cat.key] || analysis.discovery_questions?.[cat.key] || [];
+                            return (
+                              <div key={cat.key} style={{ padding: '32px', borderLeft: idx % 2 === 0 ? `1px solid ${border}` : 'none', borderBottom: idx < 2 ? `1px solid ${border}` : 'none' }}>
+                                <h5 style={{ fontSize: '16px', fontWeight: 900, color: cat.color, marginBottom: '24px', paddingBottom: '12px', borderBottom: `2px solid ${cat.color}22` }}>
+                                  {cat.label}
                                 </h5>
-                                <ul style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                  {(analysis.admin_panel?.[sec.key] || []).map((item, i) => (
-                                    <li key={i} style={{ display: 'flex', gap: '12px', fontSize: '14px', color: textSecondary, alignItems: 'center' }}>
-                                      <div style={{ width: '6px', height: '6px', background: '#7C3AED', borderRadius: '50%' }} />
-                                      {item}
+                                <ul className="flex flex-col gap-4">
+                                  {questions.map((q, i) => (
+                                    <li key={i} className="flex gap-4 items-start">
+                                      <span style={{ color: cat.color, fontWeight: 900, background: `${cat.color}15`, padding: '4px 8px', borderRadius: '8px', fontSize: '12px' }}>Q</span>
+                                      <span style={{ fontSize: '14px', fontWeight: 600, color: textSecondary, lineHeight: '1.6' }}>{q}</span>
                                     </li>
                                   ))}
                                 </ul>
                               </div>
-                            ))}
-                          </div>
+                            );
+                          })}
                         </div>
-                      )}
+                      </div>
 
-                      {/* PAGE 2: DISCOVERY & QUESTIONS (Tab: questions) */}
-                      {activeTab === 'questions' && (
-                        <>
-                          <div className="page-break-before hidden print:block"></div>
-                          <div className="glass-card avoid-break overflow-hidden mb-8 p-0 mt-4">
-                            <div className="px-6 py-5 md:px-8 md:py-6 border-b" style={{ background: isDark ? 'rgba(255,255,255,0.02)' : '#F9FBFF', borderColor: border }}>
-                              <h4 className="text-lg md:text-xl font-extrabold flex items-center gap-3" style={{ color: '#4F8EF7' }}>
-                                <ListChecks size={24} /> أسئلة لتحديد الـ Workflow والمنهجية التقنية
-                              </h4>
+                      {/* --- SECTION 5: USER JOURNEYS --- */}
+                      <div className="flex items-center gap-3 text-2xl font-black mb-6 mt-4 avoid-break" style={{ color: textPrimary }}>
+                        <MapIcon size={32} color="#F59E0B" /> تفصيل رحلة المستخدم
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                        {analysis.user_journeys?.map((j, idx) => (
+                          <div key={idx} className="glass-card avoid-break p-8" style={{ background: isDark ? 'rgba(245, 158, 11, 0.02)' : '#FFFEFA', borderTop: '5px solid #F59E0B' }}>
+                            <div style={{ display: 'inline-block', padding: '10px 20px', background: '#F59E0B15', color: '#F59E0B', borderRadius: '10px', fontSize: '15px', fontWeight: 900, marginBottom: '24px' }}>
+                              {j.user_type}
                             </div>
-                            <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x lg:divide-x-reverse" style={{ borderColor: border }}>
+                            <div className="flex flex-col gap-6">
                               {[
-                                { key: 'workflows', label: 'سير العمليات (Workflows)', color: '#4F8EF7' },
-                                { key: 'edge_cases', label: 'الحالات الاستثنائية (Edge Cases)', color: '#EF4444' },
-                                { key: 'integrations', label: 'الربط الخارجي (Integrations)', color: '#7C3AED' },
-                                { key: 'permissions', label: 'الاعتمادات والصلاحيات', color: '#F59E0B' }
-                              ].map((cat, idx) => {
-                                const questions = analysis.technical_workflow_questions?.[cat.key] || analysis.discovery_questions?.[cat.key] || [];
-                                return (
-                                  <div key={cat.key} style={{ padding: '32px', borderLeft: idx % 2 === 0 ? `1px solid ${border}` : 'none', borderBottom: idx < 2 ? `1px solid ${border}` : 'none' }}>
-                                    <h5 style={{ fontSize: '16px', fontWeight: 800, color: cat.color, marginBottom: '24px', paddingBottom: '12px', borderBottom: `2px solid ${cat.color}22` }}>
-                                      {cat.label}
-                                    </h5>
-                                    <ul style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                      {questions.map((q, i) => (
-                                        <li key={i} style={{ display: 'flex', gap: '16px', fontSize: '15px', lineHeight: '1.6', color: textSecondary }}>
-                                          <span style={{ color: cat.color, fontWeight: 900, background: `${cat.color}15`, padding: '4px 8px', borderRadius: '8px', height: 'fit-content' }}>Q</span>
-                                          <span style={{ paddingTop: '2px' }}>{q}</span>
-                                        </li>
-                                      ))}
-                                    </ul>
+                                { label: 'البداية والتسجيل (Onboarding)', key: 'onboarding' },
+                                { label: 'الرحلة الأساسية (Core Journey)', key: 'core_journey' },
+                                { label: 'تفاعل النظام (System Actions)', key: 'system_actions' },
+                                { label: 'نهاية الرحلة', key: 'end_of_journey' }
+                              ].map((section, sidx) => (j[section.key] && (
+                                <div key={sidx}>
+                                  <span style={{ fontSize: '12px', fontWeight: 900, color: '#F59E0B', display: 'block', marginBottom: '10px', opacity: 0.8 }}>{section.label}</span>
+                                  <div className="flex flex-col gap-3">
+                                    {(Array.isArray(j[section.key]) ? j[section.key] : [j[section.key]]).map((step, stepId) => (
+                                      <div key={stepId} className="flex gap-3 items-start">
+                                        <div style={{ width: '6px', height: '6px', background: '#F59E0B', borderRadius: '50%', marginTop: '6px', flexShrink: 0 }} />
+                                        <p style={{ fontSize: '14px', fontWeight: 600, color: textSecondary, lineHeight: '1.5', margin: 0 }}>{step}</p>
+                                      </div>
+                                    ))}
                                   </div>
-                                );
-                              })}
+                                </div>
+                              )))}
                             </div>
                           </div>
-                        </>
-                      )}
+                        ))}
+                      </div>
 
-                      {/* PAGE 3: USER JOURNEYS (Tab: journey) */}
-                      {activeTab === 'journey' && (
-                        <>
-                          <div className="page-break-before hidden print:block"></div>
-                          <div className="flex items-center gap-3 text-xl md:text-2xl font-black mb-6 mt-4 avoid-break" style={{ color: textPrimary }}>
-                            <MapIcon size={28} color="#F59E0B" /> مخططات رحلة المستخدم (نظرة شاملة)
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 print:grid-cols-2 print:gap-8 avoid-break">
-                            {analysis.user_journeys?.map((j, idx) => (
-                              <div key={idx} className="glass-card avoid-break p-6 md:p-8" style={{ background: isDark ? 'rgba(245, 158, 11, 0.02)' : '#FFFEFA', borderTop: '4px solid #F59E0B' }}>
-                                <div style={{ display: 'inline-block', padding: '8px 16px', background: '#F59E0B15', color: '#F59E0B', borderRadius: '8px', fontSize: '14px', fontWeight: 800, marginBottom: '28px' }}>
-                                  {j.user_type}
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                  {[
-                                    { label: 'البداية والتسجيل (Onboarding)', key: 'onboarding' },
-                                    { label: 'الرحلة الأساسية (Core)', key: 'core_journey' },
-                                    { label: 'تفاعل النظام (System)', key: 'system_actions' },
-                                    { label: 'نهاية الرحلة', key: 'end_of_journey' }
-                                  ].map((section, sidx) => (j[section.key] && (
-                                    <div key={sidx}>
-                                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#F59E0B', display: 'block', marginBottom: '10px', opacity: 0.8 }}>{section.label}</span>
-                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                        {(Array.isArray(j[section.key]) ? j[section.key] : [j[section.key]]).map((step, stepId) => (
-                                          <div key={stepId} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                                            <div style={{ width: '6px', height: '6px', background: '#F59E0B', borderRadius: '50%', marginTop: '8px', flexShrink: 0 }} />
-                                            <p style={{ fontSize: '14px', color: textSecondary, lineHeight: '1.5', margin: 0 }}>{step}</p>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )))}
-                                  {/* Fallback for old structure if exists */}
-                                  {j.steps && (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                      {j.steps.map((step, sidx) => (
-                                        <div key={sidx} style={{ display: 'flex', gap: '12px' }}>
-                                          <div style={{ width: '20px', height: '20px', background: '#F59E0B22', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                            <span style={{ fontSize: '10px', fontWeight: 900, color: '#F59E0B' }}>{sidx + 1}</span>
-                                          </div>
-                                          <p style={{ fontSize: '14px', color: textSecondary, margin: 0 }}>{step}</p>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </>
-                      )}
-
-
-                      {/* Model Signature & Footer */}
+                      {/* --- FOOTER & SIGNATURE --- */}
                       <div className="mt-12 pt-6 border-t border-dashed avoid-break" style={{ borderColor: border }}>
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                           <div className="flex items-center gap-2 text-sm font-medium" style={{ color: textSecondary }}>
                             <Sparkles size={16} className="text-blue-500" />
-                            <span>تم إنشاء هذه الاستراتيجية بواسطة المحرك:</span>
+                            <span>تم إنشاء الاستراتيجية بواسطة:</span>
                             <span className="font-black text-emerald-500 bg-emerald-500/5 px-3 py-1 rounded-lg border border-emerald-500/10">DeepSeek / Chat-Reasoner</span>
                           </div>
                           <div className="text-xs font-bold px-3 py-1 rounded-full" style={{ background: isDark ? 'rgba(255,255,255,0.03)' : '#f8f9fa', color: textMuted, border: `1px solid ${border}` }}>
-                            إصدار المحرك: V2.1.0 - DeepSeek Intelligence
+                            Sales Focus AI V2.1.0
                           </div>
                         </div>
                       </div>
-
-                      {/* Print Footer */}
-                      <div className="print-footer print-only">
-                        هذا التقرير تم توليده بواسطة Sales Focus AI - مدعوم بمحرك DeepSeek - سرية المعلومات محفوظة.
-                      </div>
+                      <div className="print-footer print-only">هذا التقرير تم توليده بواسطة Sales Focus AI - سرية المعلومات محفوظة.</div>
                     </div>
                   );
                 } catch (e) {
-                  console.error("Error parsing analysis result:", e);
-                  return <div className="no-print" style={{ color: '#EF4444', padding: '20px' }}>تعذر عرض النتائج. يبدو أن هناك خطأ في تحليل البيانات.</div>;
+                  console.error("Analysis Parse Error:", e);
+                  return <div className="p-10 text-red-500 font-bold bg-red-50 rounded-2xl">حدث خطأ أثناء عرض نتائج التحليل.</div>;
                 }
               })()}
 
-              {/* Section D: Tools / Notes */}
-              {(activeTab === 'info' || activeTab === 'strategy') && (
-                <div className="glass-card no-print" style={{ padding: '24px', marginTop: '32px' }}>
-                  <h4 style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: '18px', fontWeight: 800, color: textPrimary, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Edit3 size={20} /> مسودة ملاحظات خاصة (محرر نصي مبسط للملاحظات الداخلية)
-                  </h4>
-                  <div style={{ border: `1px solid ${border}`, borderRadius: '12px', overflow: 'hidden' }}>
-                    <div style={{ background: isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9', borderBottom: `1px solid ${border}`, padding: '8px', display: 'flex', gap: '8px' }}>
-                      <button style={{ padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 'bold', color: textPrimary }}>B</button>
-                      <button style={{ padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer', fontStyle: 'italic', color: textPrimary }}>I</button>
-                      <button style={{ padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline', color: textPrimary }}>U</button>
-                    </div>
-                    <textarea
-                      className="form-input"
-                      placeholder="اكتب أي معلومات تسعيرية، جهات اتصال، أو تفاصيل خاصة لا ترغب بإرسالها للتحليل..."
-                      rows={6}
-                      style={{ background: isDark ? 'rgba(255,255,255,0.02)' : '#FFFBEB', border: 'none', borderRadius: '0', resize: 'vertical' }}
-                    />
-                  </div>
-                </div>
-              )}
 
+              {/* Section D: Private Notes */}
+              <div className="glass-card no-print" style={{ padding: '32px', marginTop: '40px', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+                <h4 style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: '20px', fontWeight: 900, color: textPrimary, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Edit3 size={24} color="#4F8EF7" /> مسودة ملاحظات خاصة (للاستخدام الداخلي)
+                </h4>
+                <div style={{ border: `1px solid ${border}`, borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                  <div style={{ background: isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9', borderBottom: `1px solid ${border}`, padding: '12px 16px', display: 'flex', gap: '12px' }}>
+                    <button style={{ padding: '6px 12px', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: '900', color: textPrimary }}>B</button>
+                    <button style={{ padding: '6px 12px', background: 'transparent', border: 'none', cursor: 'pointer', fontStyle: 'italic', color: textPrimary }}>I</button>
+                    <button style={{ padding: '6px 12px', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline', color: textPrimary }}>U</button>
+                  </div>
+                  <textarea
+                    className="form-input"
+                    placeholder="اكتب أي معلومات تسعيرية، جهات اتصال، أو تفاصيل خاصة لا ترغب بإرسالها للتحليل..."
+                    rows={8}
+                    style={{ background: isDark ? 'rgba(255,255,255,0.02)' : '#FFFBEB', border: 'none', borderRadius: '0', resize: 'vertical', fontSize: '15px', fontWeight: 600 }}
+                  />
+                </div>
+              </div>
 
             </motion.div>
           )}

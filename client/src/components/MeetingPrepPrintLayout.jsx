@@ -79,59 +79,46 @@ export default function MeetingPrepPrintLayout({ data }) {
           </div>
         </div>
 
-        {/* 1. Strategic Message */}
-        {analysis.key_message && (
-          <div style={{ background: '#000', color: '#fff', padding: '36px', marginBottom: '40px', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ fontSize: '10pt', fontWeight: 900, marginBottom: '16px', letterSpacing: '4px', textTransform: 'uppercase', color: '#888' }}>
-              الرسالة الاستراتيجية الكبرى
-            </div>
-            <p style={{ fontSize: '22pt', fontWeight: 900, lineHeight: 1.4, margin: 0, wordBreak: 'break-word' }}>
-              {analysis.key_message}
-            </p>
-          </div>
-        )}
-
-        {/* 2. Project Idea & Business Analysis */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '32px', marginBottom: '40px' }}>
-          <div>
-            <h3 style={{ fontSize: '14pt', fontWeight: 900, borderBottom: '2px solid #000', paddingBottom: '8px', marginBottom: '16px', display: 'inline-block' }}>
-              فكرة المشروع والميزات
-            </h3>
-            <div style={{ fontSize: '12pt', lineHeight: 1.8, color: '#333', margin: 0 }}>
-              <p style={{ fontWeight: 800, marginBottom: '8px' }}>ملخص الفكرة:</p>
-              <p style={{ marginBottom: '16px' }}>{analysis.project_idea?.summary || analysis.business_analysis?.main_goal}</p>
+        {/* 1. Project Idea & Scope */}
+        <div style={{ marginBottom: '40px', pageBreakInside: 'avoid' }}>
+          <h2 style={{ fontSize: '18pt', fontWeight: 900, borderRight: '8px solid #4F8EF7', paddingRight: '16px', background: '#F0F7FF', marginBottom: '20px', paddingTop: '8px', paddingBottom: '8px' }}>
+            فكرة المشروع ونطاق العمل الاستراتيجي
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '32px' }}>
+            <div style={{ fontSize: '12pt', lineHeight: 1.8 }}>
+              <p style={{ fontWeight: 800, marginBottom: '8px', color: '#4F8EF7' }}>الرؤية والملخص:</p>
+              <p style={{ marginBottom: '24px', whiteSpace: 'pre-wrap' }}>{analysis.project_idea?.summary || analysis.business_analysis?.main_goal}</p>
               
-              <p style={{ fontWeight: 800, marginBottom: '8px' }}>الميزات الأساسية (Core Features):</p>
-              <ul style={{ paddingRight: '20px', margin: 0 }}>
+              <p style={{ fontWeight: 800, marginBottom: '12px', color: '#4F8EF7' }}>الميزات الجوهرية (Core Features):</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 {(analysis.project_idea?.core_features || []).map((feat, i) => (
-                  <li key={i} style={{ marginBottom: '4px' }}>{feat}</li>
+                  <div key={i} style={{ padding: '8px 12px', background: '#f8fbfc', border: '1px solid #eef2f3', borderRadius: '4px', fontSize: '10pt', fontWeight: 700 }}>
+                    • {feat}
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {analysis.business_analysis?.target_users?.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div>
-                <h3 style={{ fontSize: '12pt', fontWeight: 900, color: '#666', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '12px' }}>الفئات المستهدفة</h3>
+                <h3 style={{ fontSize: '11pt', fontWeight: 900, color: '#666', marginBottom: '12px', borderBottom: '1px solid #eee', paddingBottom: '4px' }}>الفئات المستهدفة</h3>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {analysis.business_analysis.target_users.map((u, i) => (
-                    <span key={i} style={{ background: '#f3f4f6', padding: '4px 10px', fontWeight: 700, fontSize: '10pt' }}>{u}</span>
+                  {analysis.business_analysis?.target_users?.map((u, i) => (
+                    <span key={i} style={{ background: '#F5F3FF', color: '#7C3AED', padding: '4px 10px', fontWeight: 700, fontSize: '9pt', borderRadius: '4px' }}>{u}</span>
                   ))}
                 </div>
               </div>
-            )}
-            {analysis.business_analysis?.expected_platforms?.length > 0 && (
               <div>
-                <h3 style={{ fontSize: '12pt', fontWeight: 900, color: '#666', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '12px' }}>المنصات المتوقعة</h3>
+                <h3 style={{ fontSize: '11pt', fontWeight: 900, color: '#666', marginBottom: '12px', borderBottom: '1px solid #eee', paddingBottom: '4px' }}>المنصات المتوقعة</h3>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {analysis.business_analysis.expected_platforms.map((p, i) => (
-                    <span key={i} style={{ border: '1px solid #000', padding: '3px 10px', fontWeight: 700, fontSize: '10pt' }}>{p}</span>
+                  {analysis.business_analysis?.expected_platforms?.map((p, i) => (
+                    <span key={i} style={{ border: '1px solid #4F8EF7', color: '#4F8EF7', padding: '3px 10px', fontWeight: 700, fontSize: '9pt', borderRadius: '4px' }}>{p}</span>
                   ))}
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
+
 
         {/* 3. Admin Panel */}
         {analysis.admin_panel && (
