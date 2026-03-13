@@ -1,64 +1,73 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const axios = require('axios');
 
 /**
- * Generates content using a waterfall fallback mechanism to handle 429 rate limits.
- * @param {Object} options - Options for generation
- * @param {string|Object} options.prompt - The user prompt or contents object
+ * Generates content using a waterfall fallback mechanism via direct REST API calls.
+ * @param {Object} options
+ * @param {string|Object} options.prompt - The user prompt
  * @param {string} options.systemInstruction - The system instruction for the model
- * @param {string} [options.responseMimeType] - Optional MIME type (e.g., 'application/json')
+ * @param {string} [options.responseMimeType] - Optional MIME type
  * @returns {Promise<string>} - The generated text response
  */
 async function generateWithFallback({ prompt, systemInstruction, responseMimeType }) {
   const models = [
     'gemini-1.5-flash',
-    'gemini-1.5-flash-8b',
-    'gemini-1.5-pro'
+    'gemini-1.5-pro',
+    'gemini-1.0-pro'
   ];
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
 
-  if (!GEMINI_API_KEY) {
+  if (!apiKey) {
     throw new Error('GEMINI_API_KEY_MISSING');
   }
 
-  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+  const promptText = typeof prompt === 'string' ? prompt : JSON.stringify(prompt);
 
   for (const modelName of models) {
     try {
-      console.log(`🤖 Attempting AI generation with model: ${modelName}`);
-      const model = genAI.getGenerativeModel({ 
-        model: modelName, 
-        systemInstruction 
+      console.log(`🤖 Attempting model via REST API: ${modelName}`);
+
+      const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
+
+      const body = {
+        contents: [{ role: 'user', parts: [{ text: promptText }] }],
+        ...(systemInstruction && {
+          systemInstruction: { parts: [{ text: systemInstruction }] }
+        }),
+        generationConfig: {
+          maxOutputTokens: 8192,
+          temperature: 0.7,
+          ...(responseMimeType && { responseMimeType })
+        }
+      };
+
+      const response = await axios.post(url, body, {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 55000
       });
 
-      // Prepare generation config if MIME type specified
-      const generationConfig = responseMimeType ? { responseMimeType } : undefined;
+      const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) throw new Error('Empty response from Gemini API');
 
-      // Handle both string prompts and contents objects
-      const requestPayload = typeof prompt === 'string' 
-        ? prompt 
-        : { contents: prompt.contents || prompt, generationConfig };
-
-      const result = await model.generateContent(requestPayload);
       console.log(`✅ Success with model: ${modelName}`);
-      return result.response.text();
+      return text;
 
     } catch (error) {
-      const isRateLimit = error.message?.includes('429') || 
-                         error.message?.includes('Resource has been exhausted') ||
-                         error.message?.includes('ResourceExhausted');
+      const status = error.response?.status;
+      const isRateLimit = status === 429 ||
+        error.message?.includes('429') ||
+        error.message?.includes('Resource has been exhausted') ||
+        error.message?.includes('ResourceExhausted');
 
       if (isRateLimit) {
-        console.warn(`⚠️ Rate limited on ${modelName}, trying next model in waterfall...`);
+        console.warn(`⚠️ Rate limited on ${modelName}, trying next model...`);
         continue;
       }
 
-      // If it's another type of error, throw it immediately
       console.error(`❌ Non-rate-limit error on ${modelName}:`, error.message);
       throw error;
     }
   }
 
-  // If we reach here, all models were rate-limited
   const exhaustionError = new Error('ALL_MODELS_EXHAUSTED');
   exhaustionError.message = 'خدمة الذكاء الاصطناعي مشغولة حالياً بسبب ارتفاع الطلب. الرجاء المحاولة مجدداً بعد دقيقتين.';
   exhaustionError.retryAfter = 120;
