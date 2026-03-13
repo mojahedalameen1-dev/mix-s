@@ -148,8 +148,11 @@ router.post('/generate-docx', async (req, res) => {
     
     res.send(buf);
   } catch (error) {
-    console.error('Error generating DOCX:', error);
-    res.status(500).json({ error: 'حدث خطأ أثناء توليد ملف الوورد.', details: error.message });
+    console.error('Proposal Generation Error:', error);
+    res.status(500).json({ 
+      error: 'فشل إنشاء العرض الفني',
+      details: error.message || 'Unknown error'
+    });
   }
 });
 

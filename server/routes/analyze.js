@@ -54,9 +54,12 @@ router.post('/', async (req, res) => {
     }
 
     res.json({ success: true, analysis });
-  } catch (err) {
-    console.error('Gemini error:', err.message);
-    res.status(500).json({ error: 'حدث خطأ أثناء تحليل الفكرة عبر الذكاء الاصطناعي.' });
+  } catch (error) {
+    console.error('Analysis error:', error);
+    res.status(500).json({ 
+      error: 'فشل تحليل الفكرة. يرجى المحاولة مرة أخرى.',
+      details: error.message || 'Unknown error'
+    });
   }
 });
 

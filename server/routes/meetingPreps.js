@@ -13,8 +13,12 @@ router.get('/', async (req, res) => {
     if (error) throw error;
     res.json(preps);
   } catch (error) {
-    console.error('Error fetching meeting preps:', JSON.stringify(error, null, 2));
-    res.status(500).json({ error: 'Failed to fetch meeting preps' });
+    console.error('Error fetching meeting preps:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch meeting preps',
+      details: error.message || 'Unknown error',
+      code: error.code
+    });
   }
 });
 

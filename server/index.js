@@ -3,14 +3,24 @@ const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
 
-// Load environment variables from current directory and parent directory
-dotenv.config(); // Loads from process.cwd()
-dotenv.config({ path: path.join(__dirname, '.env') }); // Loads from /server/.env
-dotenv.config({ path: path.join(__dirname, '..', '.env') }); // Loads from root/.env
+// Load environment variables
+try {
+  dotenv.config(); // Loads from process.cwd()
+  dotenv.config({ path: path.join(__dirname, '.env') }); // Loads from /server/.env
+  dotenv.config({ path: path.join(__dirname, '..', '.env') }); // Loads from root/.env
+} catch (e) {
+  console.warn('Dotenv loading skipped or failed (common in Vercel):', e.message);
+}
 const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+console.log('🚀 Server starting initialization...');
+console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+console.log(`Vercel environment: ${process.env.VERCEL === '1' ? 'Yes' : 'No'}`);
+console.log(`Supabase URL configured: ${process.env.SUPABASE_URL ? 'Yes' : 'No'}`);
+console.log(`Gemini Key configured: ${process.env.GEMINI_API_KEY ? 'Yes' : 'No'}`);
 
 // Middleware
 app.use(cors());

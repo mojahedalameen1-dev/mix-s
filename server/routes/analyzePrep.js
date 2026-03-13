@@ -72,13 +72,12 @@ router.post('/', async (req, res) => {
     res.json(analysis);
 
   } catch (error) {
-    console.error('Gemini API Error (Prep Hub):', error.message);
+    console.error('Analysis error:', error);
     res.status(500).json({ 
-      error: 'حدث خطأ أثناء التواصل مع الذكاء الاصطناعي.',
-      details: error.message
+      error: 'فشل تحليل التحضير. يرجى المحاولة مرة أخرى.',
+      details: error.message || 'Unknown error'
     });
   }
 });
 
-module.exports = router;
 

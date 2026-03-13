@@ -114,7 +114,11 @@ router.get('/stats', async (req, res) => {
 
     } catch (err) {
         console.error('Dashboard Auth/Stats Error:', err);
-        res.status(500).json({ error: 'حدث خطأ أثناء تحميل إحصائيات لوحة التحكم' });
+        res.status(500).json({ 
+            error: 'حدث خطأ أثناء تحميل إحصائيات لوحة التحكم',
+            details: err.message || 'Unknown error',
+            code: err.code
+        });
     }
 });
 
