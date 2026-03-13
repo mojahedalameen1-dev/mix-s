@@ -32,11 +32,11 @@ router.post('/', async (req, res) => {
   const { text } = req.body;
 
   if (!process.env.DEEPSEEK_API_KEY) {
-    return res.status(500).json({ error: '\u0645\u0641\u062A\u0627\u062D \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A \u063a\u064A\u0631 \u0645\u062A\u0648\u0641\u0631 \u0641\u064A \u0627\u0644\u062e\u0627\u062F\u0645.' });
+    return res.status(500).json({ error: 'مفتاح الذكاء الاصطناعي غير متوفر في الخادم.' });
   }
 
   if (!text) {
-    return res.status(400).json({ error: '\u0627\u0644\u0631\u062C\u0627\u0621 \u0625\u062F\u062E\u0627\u0644 \u062A\u0641\u0627\u0635\u064A\u0644 \u0627\u0644\u0645\u0634\u0631\u0648\u0639 \u0623\u0648 \u0627\u0644\u0627\u062C\u062A\u0645\u0627\u0639.' });
+    return res.status(400).json({ error: 'الرجاء إدخال تفاصيل المشروع أو الاجتماع.' });
   }
 
   try {
@@ -157,7 +157,7 @@ router.post('/', async (req, res) => {
     }
 
     res.status(500).json({ 
-      error: '\u062D\u062F\u062B \u062e\u0637\u0623 \u0623\u062B\u0646\u0627\u0621 \u0627\u0644\u0627\u062A\u0635\u0627\u0644 \u0628\u0646\u0645\u0648\u0630\u062C \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A.',
+      error: 'حدث خطأ أثناء الاتصال بنموذج الذكاء الاصطناعي.',
       details: error.message
     });
   }
