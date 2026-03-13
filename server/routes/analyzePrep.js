@@ -1,5 +1,5 @@
 const express = require('express');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { generateWithFallback } = require('../helpers/aiClient');
 const axios = require('axios');
 const router = express.Router();
 const supabase = require('../supabase');
@@ -8,15 +8,10 @@ router.post('/', async (req, res) => {
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   const { prep_id, title, client_name, sector, idea_raw } = req.body;
 
-  if (!GEMINI_API_KEY) {
+  if (!process.env.GEMINI_API_KEY) {
     console.error('Environment Check - GEMINI_API_KEY is missing');
     return res.status(500).json({ 
       error: 'مفتاح Gemini API غير متوفر في الخادم.',
-      debug_info: {
-        has_env_var: !!process.env.GEMINI_API_KEY,
-        node_env: process.env.NODE_ENV,
-        env_keys: Object.keys(process.env).filter(k => k.includes('API') || k.includes('KEY')).join(', ')
-      }
     });
   }
 
@@ -25,10 +20,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash",
-      systemInstruction: `أنت العقل الاستراتيجي (Strategic Brain) لمنظومة Sales Focus AI.
+    const systemInstruction = `أنت العقل الاستراتيجي (Strategic Brain) لمنظومة Sales Focus AI.
 أجب بصيغة JSON فقط وبدقة متناهية وبدون مقدمات. استخدم مفردات البزنس السعودي.
 الهيكل المطلوب:
 {
@@ -37,8 +29,7 @@ router.post('/', async (req, res) => {
   "meeting_plan": { "opening": "...", "next_step": "..." },
   "discovery_questions": { "business": [], "technical": [], "scope": [] },
   "user_journeys": [ { "user_type": "...", "steps": [] } ]
-}`,
-    });
+}`;
 
     const userPrompt = `بيانات الاجتماع:
 - العنوان: ${title}
@@ -48,15 +39,13 @@ router.post('/', async (req, res) => {
 
 نفذ التحليل الاستراتيجي الآن وقدم التقرير بصيغة JSON.`;
 
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-      generationConfig: { responseMimeType: "application/json" }
+    let analysisText = await generateWithFallback({
+      prompt: userPrompt,
+      systemInstruction,
+      responseMimeType: "application/json"
     });
 
-    let analysis = result.response.text();
-    if (typeof analysis === 'string') {
-      analysis = JSON.parse(analysis);
-    }
+    let analysis = JSON.parse(analysisText);
 
     // Save to Supabase if prep_id provided
     if (prep_id) {
@@ -73,11 +62,19 @@ router.post('/', async (req, res) => {
 
   } catch (error) {
     console.error('Analysis error:', error);
+    
+    if (error.message === 'ALL_MODELS_EXHAUSTED') {
+      return res.status(429).json({
+        error: error.message,
+        retryAfter: error.retryAfter
+      });
+    }
+
     res.status(500).json({ 
       error: 'فشل تحليل التحضير عبر الذكاء الاصطناعي',
       details: error.message,
       stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined,
-      failedAt: 'Gemini AI Prep Analysis'
+      failedAt: 'AI Waterfall Analysis'
     });
   }
 });

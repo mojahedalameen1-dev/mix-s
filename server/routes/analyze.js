@@ -1,5 +1,5 @@
 const express = require('express');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { generateWithFallback } = require('../helpers/aiClient');
 const axios = require('axios');
 const router = express.Router();
 const supabase = require('../supabase');
@@ -8,17 +8,14 @@ router.post('/', async (req, res) => {
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   const { client_idea, client_name, sector, client_id } = req.body;
   
-  if (!GEMINI_API_KEY) {
+  if (!process.env.GEMINI_API_KEY) {
     return res.status(500).json({ error: 'مفتاح Gemini API غير متوفر في الخادم.' });
   }
 
   if (!client_idea) return res.status(400).json({ error: 'فكرة العميل مطلوبة' });
 
   try {
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash",
-      systemInstruction: `أنت العقل الاستراتيجي (Strategic Brain) لمنظومة Sales Focus AI.
+    const systemInstruction = `أنت العقل الاستراتيجي (Strategic Brain) لمنظومة Sales Focus AI.
 أجب بصيغة JSON فقط، بدون مقدمات. استخدم مفردات البزنس السعودي.
 الهيكل المطلوبة:
 {
@@ -27,8 +24,7 @@ router.post('/', async (req, res) => {
   "discovery_questions": { "business": [], "technical": [], "scope": [] },
   "user_journeys": [ { "user_type": "...", "steps": [] } ],
   "meeting_plan": { "opening": "...", "key_message": "...", "next_step": "..." }
-}`,
-    });
+}`;
 
     const userPrompt = `الفكرة: ${client_idea}
 العميل: ${client_name || 'العميل'}
@@ -36,15 +32,13 @@ router.post('/', async (req, res) => {
 
 حلل الفكرة استراتيجياً وقدم الـ JSON المطلوب.`;
 
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-      generationConfig: { responseMimeType: "application/json" }
+    let analysisText = await generateWithFallback({
+      prompt: userPrompt,
+      systemInstruction,
+      responseMimeType: "application/json"
     });
 
-    let analysis = result.response.text();
-    if (typeof analysis === 'string') {
-      analysis = JSON.parse(analysis);
-    }
+    let analysis = JSON.parse(analysisText);
 
     // Save to Supabase if client_id provided
     if (client_id) {
@@ -56,11 +50,19 @@ router.post('/', async (req, res) => {
     res.json({ success: true, analysis });
   } catch (error) {
     console.error('Analysis error:', error);
+
+    if (error.message === 'ALL_MODELS_EXHAUSTED') {
+      return res.status(429).json({
+        error: error.message,
+        retryAfter: error.retryAfter
+      });
+    }
+
     res.status(500).json({ 
       error: 'فشل تحليل الفكرة عبر الذكاء الاصطناعي',
       details: error.message,
       stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined,
-      failedAt: 'Gemini AI Analysis'
+      failedAt: 'AI Waterfall Analysis'
     });
   }
 });
