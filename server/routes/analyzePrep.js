@@ -8,10 +8,10 @@ router.post('/', async (req, res) => {
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   const { prep_id, title, client_name, sector, idea_raw } = req.body;
 
-  if (!process.env.GEMINI_API_KEY) {
-    console.error('Environment Check - GEMINI_API_KEY is missing');
+  if (!process.env.DEEPSEEK_API_KEY) {
+    console.error('Environment Check - DEEPSEEK_API_KEY is missing');
     return res.status(500).json({ 
-      error: '\u0645\u0641\u062a\u0627\u062d Gemini API \u063a\u064a\u0631 \u0645\u062a\u0648\u0641\u0631 \u0641\u064a \u0627\u0644\u062e\u0627\u062f\u0645.',
+      error: '\u0645\u0641\u062a\u0627\u062d \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064a \u063a\u064a\u0631 \u0645\u062a\u0648\u0641\u0631 \u0641\u064a \u0627\u0644\u062e\u0627\u062f\u0645.',
     });
   }
 

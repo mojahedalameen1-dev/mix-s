@@ -31,8 +31,8 @@ try {
 router.post('/', async (req, res) => {
   const { text } = req.body;
 
-  if (!process.env.GEMINI_API_KEY) {
-    return res.status(500).json({ error: '\u0645\u0641\u062A\u0627\u062D Gemini API \u063a\u064A\u0631 \u0645\u062A\u0648\u0641\u0631 \u0641\u064A \u0627\u0644\u062e\u0627\u062F\u0645.' });
+  if (!process.env.DEEPSEEK_API_KEY) {
+    return res.status(500).json({ error: '\u0645\u0641\u062A\u0627\u062D \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A \u063a\u064A\u0631 \u0645\u062A\u0648\u0641\u0631 \u0641\u064A \u0627\u0644\u062e\u0627\u062F\u0645.' });
   }
 
   if (!text) {
