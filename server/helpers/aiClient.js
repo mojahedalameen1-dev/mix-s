@@ -1,65 +1,98 @@
 const axios = require('axios');
 
+/**
+ * Generates content using a waterfall fallback mechanism via DeepSeek API.
+ * @param {Object} options
+ * @param {string|Object} options.prompt - The user prompt
+ * @param {string} options.systemInstruction - The system instruction for the model
+ * @param {string} [options.responseMimeType] - Optional MIME type
+ * @returns {Promise<string>} - The generated text response
+ */
 async function generateWithFallback({ prompt, systemInstruction, responseMimeType }) {
   const models = [
-    'gemini-1.5-flash',
-    'gemini-1.5-pro',
-    'gemini-1.0-pro'
+    'deepseek-chat',
+    'deepseek-reasoner'
   ];
-  const apiKey = process.env.GEMINI_API_KEY;
+  
+  // Use DEEPSEEK_API_KEY if available, otherwise check GEMINI_API_KEY for legacy
+  const apiKey = process.env.DEEPSEEK_API_KEY || process.env.GEMINI_API_KEY;
 
-  if (!apiKey) throw new Error('GEMINI_API_KEY_MISSING');
+  if (!apiKey) {
+    throw new Error('AI_API_KEY_MISSING');
+  }
 
-  // دمج systemInstruction مع الـ prompt مباشرةً
-  const fullPrompt = systemInstruction
-    ? `${systemInstruction}\n\n---\n\n${typeof prompt === 'string' ? prompt : JSON.stringify(prompt)}`
-    : (typeof prompt === 'string' ? prompt : JSON.stringify(prompt));
+  // Handle both string prompts and contents objects
+  let promptText = typeof prompt === 'string'
+    ? prompt
+    : JSON.stringify(prompt, null, 0);
+
+  // Clean common escapes if it's coming from a serialized source
+  promptText = promptText
+    .replace(/\\\\n/g, '\n')
+    .replace(/\\\\t/g, '\t')
+    .replace(/\\\\r/g, '');
 
   for (const modelName of models) {
     try {
-      console.log(`🤖 Attempting model via REST API: ${modelName}`);
+      console.log(`🤖 Attempting model via DeepSeek API: ${modelName}`);
 
-      const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
+      const url = 'https://api.deepseek.com/chat/completions';
 
       const body = {
-        contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
-        generationConfig: {
-          maxOutputTokens: 8192,
-          temperature: 0.7
-        }
+        model: modelName,
+        messages: [
+          ...(systemInstruction ? [{ role: 'system', content: systemInstruction }] : []),
+          { role: 'user', content: promptText }
+        ],
+        stream: false,
+        temperature: 0.7,
+        max_tokens: 8192
       };
 
+      // Handle JSON response requirement for DeepSeek (they support response_format)
+      if (responseMimeType === 'application/json') {
+        body.response_format = { type: 'json_object' };
+      }
+
       const response = await axios.post(url, body, {
-        headers: { 'Content-Type': 'application/json' },
-        timeout: 55000
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        timeout: 60000
       });
 
-      const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) throw new Error('Empty response from Gemini API');
+      const text = response.data?.choices?.[0]?.message?.content;
+      if (!text) throw new Error('Empty response from DeepSeek API');
 
       console.log(`✅ Success with model: ${modelName}`);
       return text;
 
     } catch (error) {
       const status = error.response?.status;
+
+      // Log full DeepSeek error details for debugging
       if (error.response?.data) {
-        console.error(`📋 Google API Error:`, JSON.stringify(error.response.data));
+        console.error(`📋 DeepSeek API Error Details:`, JSON.stringify(error.response.data));
       }
+
       const isRateLimit = status === 429 ||
         error.message?.includes('429') ||
-        error.message?.includes('Resource has been exhausted');
+        error.message?.includes('balance is insufficient') ||
+        error.message?.includes('Insufficient Balance');
 
       if (isRateLimit) {
-        console.warn(`⚠️ Rate limited on ${modelName}, trying next...`);
+        console.warn(`⚠️ Rate limited or balance issue on ${modelName}, trying next model...`);
         continue;
       }
+
       console.error(`❌ Non-rate-limit error on ${modelName}:`, error.message);
       throw error;
     }
   }
 
   const exhaustionError = new Error('ALL_MODELS_EXHAUSTED');
-  exhaustionError.message = 'خدمة الذكاء الاصطناعي مشغولة حالياً. الرجاء المحاولة بعد دقيقتين.';
+  exhaustionError.message = 'خدمة الذكاء الاصطناعي مشغولة حالياً أو الرصيد غير كافٍ. الرجاء المحاولة مجدداً بعد دقيقتين.';
   exhaustionError.retryAfter = 120;
   throw exhaustionError;
 }
