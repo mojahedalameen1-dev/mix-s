@@ -1,13 +1,5 @@
 const axios = require('axios');
 
-/**
- * Generates content using a waterfall fallback mechanism via direct REST API calls.
- * @param {Object} options
- * @param {string|Object} options.prompt - The user prompt
- * @param {string} options.systemInstruction - The system instruction for the model
- * @param {string} [options.responseMimeType] - Optional MIME type
- * @returns {Promise<string>} - The generated text response
- */
 async function generateWithFallback({ prompt, systemInstruction, responseMimeType }) {
   const models = [
     'gemini-1.5-flash',
@@ -16,19 +8,12 @@ async function generateWithFallback({ prompt, systemInstruction, responseMimeTyp
   ];
   const apiKey = process.env.GEMINI_API_KEY;
 
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY_MISSING');
-  }
+  if (!apiKey) throw new Error('GEMINI_API_KEY_MISSING');
 
-  // Fix double-escaped characters from JSON serialization
-  let promptText = typeof prompt === 'string'
-    ? prompt
-    : JSON.stringify(prompt, null, 0);
-
-  promptText = promptText
-    .replace(/\\\\n/g, '\n')
-    .replace(/\\\\t/g, '\t')
-    .replace(/\\\\r/g, '');
+  // دمج systemInstruction مع الـ prompt مباشرةً
+  const fullPrompt = systemInstruction
+    ? `${systemInstruction}\n\n---\n\n${typeof prompt === 'string' ? prompt : JSON.stringify(prompt)}`
+    : (typeof prompt === 'string' ? prompt : JSON.stringify(prompt));
 
   for (const modelName of models) {
     try {
@@ -37,14 +22,10 @@ async function generateWithFallback({ prompt, systemInstruction, responseMimeTyp
       const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
 
       const body = {
-        contents: [{ role: 'user', parts: [{ text: promptText }] }],
-        ...(systemInstruction && {
-          systemInstruction: { parts: [{ text: systemInstruction }] }
-        }),
+        contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
         generationConfig: {
           maxOutputTokens: 8192,
-          temperature: 0.7,
-          ...(responseMimeType && { responseMimeType })
+          temperature: 0.7
         }
       };
 
@@ -61,29 +42,24 @@ async function generateWithFallback({ prompt, systemInstruction, responseMimeTyp
 
     } catch (error) {
       const status = error.response?.status;
-
-      // Log full Google error details for debugging
       if (error.response?.data) {
-        console.error(`📋 Google API Error Details:`, JSON.stringify(error.response.data));
+        console.error(`📋 Google API Error:`, JSON.stringify(error.response.data));
       }
-
       const isRateLimit = status === 429 ||
         error.message?.includes('429') ||
-        error.message?.includes('Resource has been exhausted') ||
-        error.message?.includes('ResourceExhausted');
+        error.message?.includes('Resource has been exhausted');
 
       if (isRateLimit) {
-        console.warn(`⚠️ Rate limited on ${modelName}, trying next model...`);
+        console.warn(`⚠️ Rate limited on ${modelName}, trying next...`);
         continue;
       }
-
       console.error(`❌ Non-rate-limit error on ${modelName}:`, error.message);
       throw error;
     }
   }
 
   const exhaustionError = new Error('ALL_MODELS_EXHAUSTED');
-  exhaustionError.message = 'خدمة الذكاء الاصطناعي مشغولة حالياً بسبب ارتفاع الطلب. الرجاء المحاولة مجدداً بعد دقيقتين.';
+  exhaustionError.message = 'خدمة الذكاء الاصطناعي مشغولة حالياً. الرجاء المحاولة بعد دقيقتين.';
   exhaustionError.retryAfter = 120;
   throw exhaustionError;
 }
