@@ -1,7 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+const dotenv = require('dotenv');
+
+// Load environment variables from current directory and parent directory
+dotenv.config(); // Loads from process.cwd()
+dotenv.config({ path: path.join(__dirname, '.env') }); // Loads from /server/.env
+dotenv.config({ path: path.join(__dirname, '..', '.env') }); // Loads from root/.env
 const fs = require('fs');
 
 const app = express();
