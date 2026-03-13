@@ -6,7 +6,13 @@ const path = require('path');
 const fs = require('fs');
 const PizZip = require('pizzip');
 const Docxtemplater = require('docxtemplater');
-const convertapi = require('convertapi')(process.env.CONVERTAPI_SECRET);
+const convertapi = process.env.CONVERTAPI_SECRET 
+  ? require('convertapi')(process.env.CONVERTAPI_SECRET)
+  : null;
+
+if (!convertapi) {
+  console.warn('⚠️ CONVERTAPI_SECRET is missing. PDF conversion will be disabled.');
+}
 
 // Ensure temp directory exists
 const isVercel = process.env.VERCEL === '1';
@@ -15,6 +21,7 @@ const tempDir = isVercel ? path.join('/tmp', 'temp') : path.join(__dirname, '..'
 try {
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir, { recursive: true });
+    console.log(`Created temp directory at: ${tempDir}`);
   }
 } catch (err) {
   console.error('Failed to create temp directory:', err.message);
