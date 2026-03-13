@@ -97,7 +97,7 @@ router.post('/', async (req, res) => {
 [اسرد رحلة المستخدم خطوة بخطوة من لحظة دخوله حتى إتمام الهدف الأساسي، بأسلوب سردي تسلسلي واضح]
 
 **ثانياً: نموذج الربح (Revenue Model):**
-تم تصميم النظام ليدعم مصادر الدخل التالية:
+تم تصميم النظام ليدعم مصادرة الدخل التالية:
 [اذكر كل مصدر ربح بوضوح مع آلية تطبيقه داخل المنصة]
 
 ---
@@ -116,7 +116,7 @@ router.post('/', async (req, res) => {
 | التكلفة | |
 | مدة العمل | |
 
-بعد الانتهاء من النص أعلاه، أضف فوراً كتلة JSON برمجية تحتوي على البيانات المهيكلة لاستخدامها في النظام البرمجي، يجب أن تكون داخل وسم \` \` \`json وتتتبع الهيكل التالي بدقة:
+بعد الانتهاء من النص أعلاه، أضف فوراً كتلة JSON برمجية تحتوي على البيانات المهيكلة لاستخدامها في النظام البرمجي، يجب أن تكون داخل وسم \`\`\`json وتتتبع الهيكل التالي بدقة:
 {
   "projectType": "...",
   "projectActivity": "...",
@@ -136,7 +136,7 @@ router.post('/', async (req, res) => {
   "estimatedCost": "...",
   "estimatedDuration": "..."
 }
-\` \` \`
+\`\`\`
 تأكد من استخراج أهم النقاط من النص وتوزيعها على هذه المصفوفات والحقول.`;
 
     const proposal = await generateWithFallback({
@@ -147,9 +147,8 @@ router.post('/', async (req, res) => {
     res.json({ success: true, proposal });
 
   } catch (error) {
-    console.error('Gemini API Error (Proposals):', error.message);
     
-    if (error.message === 'ALL_MODELS_EXHAUSTED') {
+    if (error.code === 'ALL_MODELS_EXHAUSTED') {
       return res.status(429).json({
         error: error.message,
         retryAfter: error.retryAfter
