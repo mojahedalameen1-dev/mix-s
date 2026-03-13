@@ -1,9 +1,10 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+
 // Load environment variables (only in non-production)
 if (process.env.NODE_ENV !== 'production') {
   try {
-    const path = require('path');
     const dotenv = require('dotenv');
     dotenv.config(); // Loads from process.cwd()
     dotenv.config({ path: path.join(__dirname, '.env') }); // Loads from /server/.env
