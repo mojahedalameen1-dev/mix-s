@@ -268,8 +268,8 @@ export default function Dashboard() {
               {targetGap <= 0
                 ? "مسارك ممتاز! الصفقات الحالية تكفي لتحقيق التارجت 🚀"
                 : topActiveToClose.length > 0
-                  ? `لتعويض الفارق للوصول للتارجت، ركز على إغلاق صفقة [${topActiveToClose[0].client_name}] (الدفعة الأولى المتوقعة: ${formatSAR(topActiveToClose[0].rawTargetValue)} ريال)${topActiveToClose[1] ? ` أو [${topActiveToClose[1].client_name}].` : '.'}`
-                  : `لتعويض الفارق (${formatSAR(targetGap)} ريال)، تحتاج إلى إدخال فرص بيعية جديدة لبورد المبيعات عاجلاً!`
+                  ? `لتعويض الفارق للوصول للتارجت، ركز على إغلاق صفقة [${topActiveToClose[0].client_name}] (الدفعة الأولى المتوقعة: ${formatSAR(topActiveToClose[0].rawTargetValue)})${topActiveToClose[1] ? ` أو [${topActiveToClose[1].client_name}].` : '.'}`
+                  : `لتعويض الفارق (${formatSAR(targetGap)})، تحتاج إلى إدخال فرص بيعية جديدة لبورد المبيعات عاجلاً!`
               }
             </p>
           </div>
@@ -393,15 +393,7 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      {/* Floating Action Button */}
-      <motion.button
-        whileHover={{ scale: 1.05, boxShadow: '0 8px 30px rgba(79,142,247,0.4)', y: -2 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => navigate('/clients/new')}
-        className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-50 px-6 py-3.5 rounded-full bg-gradient-to-br from-[#4F8EF7] to-[#7C3AED] text-white border-none cursor-pointer font-['IBM_Plex_Sans_Arabic'] text-[15px] font-extrabold flex items-center gap-2 shadow-[0_4px_20px_rgba(79,142,247,0.3)] transition-all"
-      >
-        <PlusCircle size={24} className="text-white/80" /> إضافة صفقة سريعة
-      </motion.button>
+      {/* Floating Action Button Removed - Moved to Topbar */}
     </motion.div>
   );
 }

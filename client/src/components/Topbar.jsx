@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, AlertCircle, Calendar, CheckCircle2, Menu } from 'lucide-react';
+import { Bell, AlertCircle, Calendar, CheckCircle2, Menu, PlusCircle } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { formatDate } from '../utils/formatDate';
@@ -68,6 +68,15 @@ export default function Topbar({ isMobile, setIsMobileOpen }) {
       </div>
 
       <div className="flex items-center gap-4 relative">
+        {/* Quick Deal Button */}
+        <button
+          onClick={() => navigate('/clients/new')}
+          className="flex items-center gap-2 px-3 md:px-5 py-2 md:py-2.5 rounded-full bg-gradient-to-br from-[#4F8EF7] to-[#7C3AED] text-white border-none cursor-pointer font-['IBM_Plex_Sans_Arabic'] text-sm md:text-[15px] font-extrabold shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all duration-300"
+        >
+          <PlusCircle size={20} className="shrink-0" />
+          <span className="hidden sm:inline">إضافة صفقة سريعة</span>
+        </button>
+
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           className="relative w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/5 flex items-center justify-center text-slate-800 dark:text-slate-200 cursor-pointer transition-colors duration-200"
