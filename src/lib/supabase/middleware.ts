@@ -61,7 +61,7 @@ export async function updateSession(request: NextRequest) {
   const isDashboardPage = request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname === '/'
   const isAdminPage = request.nextUrl.pathname.startsWith('/admin')
 
-  if (!user && !isAuthPage) {
+  if (!user && !isAuthPage && !isAdminPage) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 

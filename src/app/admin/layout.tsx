@@ -11,7 +11,7 @@ export default async function AdminLayout({
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) redirect('/login')
+  // if (!user) redirect('/login')
 
   // We relax the profile.role check to allow access via password gate
   // as per user request for password protection
