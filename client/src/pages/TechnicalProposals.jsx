@@ -26,7 +26,6 @@ export default function TechnicalProposals() {
   const { addToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [exportingDocx, setExportingDocx] = useState(false);
-  const [exportingDocx, setExportingDocx] = useState(false);
   const processedResultRef = React.useRef(null);
 
   // Form State
