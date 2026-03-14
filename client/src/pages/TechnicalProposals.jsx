@@ -27,6 +27,7 @@ export default function TechnicalProposals() {
   const [loading, setLoading] = useState(false);
   const [exportingDocx, setExportingDocx] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const processedResultRef = React.useRef(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -56,7 +57,8 @@ export default function TechnicalProposals() {
 
   // Handle Stream Result
   useEffect(() => {
-    if (status === 'done' && result) {
+    if (status === 'done' && result && processedResultRef.current !== result) {
+      processedResultRef.current = result;
       const fullText = result.proposal || result;
       const jsonMatch = fullText.match(/```json\s*([\s\S]*?)\s*```/);
       
@@ -86,7 +88,7 @@ export default function TechnicalProposals() {
       }
       addToast('تم إنشاء العرض الفني بنجاح', 'success');
     }
-  }, [status, result, addToast]);
+  }, [status, result]);
 
   useEffect(() => {
     if (formData.price) {

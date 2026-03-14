@@ -7,146 +7,31 @@ const fs = require('fs');
 const PizZip = require('pizzip');
 const Docxtemplater = require('docxtemplater');
 
-// AI Proposal Text Generation
-router.post('/', async (req, res) => {
-  const { text } = req.body;
-
-  if (!process.env.DEEPSEEK_API_KEY) {
-    return res.status(500).json({ error: 'مفتاح الذكاء الاصطناعي غير متوفر في الخادم.' });
-  }
-
-  if (!text) {
-    return res.status(400).json({ error: 'الرجاء إدخال تفاصيل المشروع أو الاجتماع.' });
-  }
-
-  try {
-    const systemInstruction = `أنت خبير تقني واستراتيجي متخصص في إعداد العروض الفنية الاحترافية للمشاريع البرمجية. مهمتك تحويل تفريغ الاجتماع المرفق إلى عرض فني متكامل وجاهز للعرض على العميل مباشرةً.
-
-## التعليمات العامة
-
-- اعتمد على المرحلة الأولى من المشروع فقط ما لم يُحدَّد غير ذلك
-- النص مفصّل، شامل، ولا يُغفل أي نقطة وردت في التفريغ
-- الأسلوب: رسمي، احترافي، مباشر — كأنك تخاطب صاحب قرار
-- لا تعليقات جانبية، لا ملاحظات، لا أقواس توضيحية موجهة للمحرر
-- استنتج المعلومات المنطقية الناقصة من السياق واملأ الفراغات بذكاء
-- استخدم مصطلحات تقنية دقيقة مع الحفاظ على وضوح الفكرة للعميل غير التقني
-
-## نموذج العرض الفني (يجب الالتزام بهذا الهيكل حرفياً)
-
----
-
-### نموذج العمل المقترح (Business Logic)
-
-| الحقل | التفاصيل |
-|---|---|
-| نوع المشروع | |
-| نشاط المشروع | |
-| لغة المشروع | |
-| مكونات المشروع | |
-| النطاق الجغرافي | |
-| الشريحة المستهدفة | |
-
----
-
-### وصف المشروع والنطاق العام (Project Understanding & Scope)
-
-**A. وصف المشروع:**
-المشروع عبارة عن [وصف شامل ومفصّل يعكس طبيعة المنصة أو التطبيق، مجاله، وآلية عمله الجوهرية]
-
-**B. الأهداف الاستراتيجية:**
-[اذكر الأهداف الاستراتيجية بصيغة نقاط واضحة تبدأ بأفعال: السيطرة على / تمكين / تسريع / رفع / خفض...]
-
-**C. مكونات المشروع:**
-[اذكر كل مكون بمسماه الوظيفي ووصف مختصر لدوره: تطبيق العملاء، لوحة الإدارة، البوابات، إلخ]
-
----
-
-### نطاق العمل الوظيفي (Functional Scope of Work)
-
-**A. هيكلية المستخدمين (System Actors):**
-
-لكل جهة مستخدمة (عميل، مزود خدمة، مشرف...):
-- اذكر اسمها
-- افصّل صلاحياتها ومساراتها الوظيفية كاملةً بنقاط منظّمة تحت كل فئة
-
----
-
-### رحلة المستخدم والبيئة التقنية (User Journey & Technical Architecture)
-
-**أولاً: سيناريو رحلة المستخدم (The Workflow):**
-[اسرد رحلة المستخدم خطوة بخطوة من لحظة دخوله حتى إتمام الهدف الأساسي، بأسلوب سردي تسلسلي واضح]
-
-**ثانياً: نموذج الربح (Revenue Model):**
-تم تصميم النظام ليدعم مصادرة الدخل التالية:
-[اذكر كل مصدر ربح بوضوح مع آلية تطبيقه داخل المنصة]
-
----
-
-### تفاصيل لوحة التحكم
-
-[افصّل أقسام لوحة التحكم الإدارية وصلاحياتها وأدواتها بشكل منظّم]
-
----
-
-### التقييم والتكلفة والجدول الزمني
-
-| البند | التفاصيل |
-|---|---|
-| التقييم | |
-| التكلفة | |
-| مدة العمل | |
-
-بعد الانتهاء من النص أعلاه، أضف فوراً كتلة JSON برمجية تحتوي على البيانات المهيكلة لاستخدامها في النظام البرمجي، يجب أن تكون داخل وسم \`\`\`json وتتتبع الهيكل التالي بدقة:
-{
-  "projectType": "...",
-  "projectActivity": "...",
-  "projectLanguage": "...",
-  "projectComponents": "...",
-  "geographicScope": "...",
-  "targetSegment": "...",
-  "projectDescription": "...",
-  "strategicGoals": [{"name": "..."}],
-  "actors": [{"name": "...", "details": "..."}],
-  "features": [{"name": "..."}],
-  "journeys": [{"name": "..."}],
-  "adminFeatures": [{"name": "..."}],
-  "revenueModel": "...",
-  "workflow": "...",
-  "technicalAssessment": "...",
-  "estimatedCost": "...",
-  "estimatedDuration": "..."
-}
-\`\`\`
-تأكد من استخراج أهم النقاط من النص وتوزيعها على هذه المصفوفات والحقول.`;
-
-    const proposal = await generateWithFallback({
-      prompt: text,
-      systemInstruction
-    });
-
-    res.json({ success: true, proposal });
-
-  } catch (error) {
-    
-    if (error.code === 'ALL_MODELS_EXHAUSTED') {
-      return res.status(429).json({
-        error: error.message,
-        retryAfter: error.retryAfter
-      });
-    }
-
-    res.status(500).json({ 
-      error: 'حدث خطأ أثناء الاتصال بنموذج الذكاء الاصطناعي.',
-      details: error.message
-    });
-  }
-});
-
 // Generate DOCX
 router.post('/generate-docx', async (req, res) => {
   try {
-    const data = req.body;
-    const templatePath = path.join(__dirname, '..', '..', 'templates', 'quotation.docx');
+    const data = req.body || {};
+    
+    // Safety defaults for structured data to prevent docxtemplater failures
+    const safeData = {
+      clientName: data.clientName || 'عميل كريم',
+      date: data.date || new Date().toISOString().split('T')[0],
+      offerNumber: data.offerNumber || 'MS-0000',
+      managerName: data.managerName || '',
+      proposalText: data.proposalText || '',
+      price: data.price || '0',
+      vat: data.vat || '0',
+      total: data.total || '0',
+      durationDays: data.durationDays || '0',
+      serviceDescription: data.serviceDescription || '',
+      strategicGoals: Array.isArray(data.strategicGoals) ? data.strategicGoals : [],
+      actors: Array.isArray(data.actors) ? data.actors : [],
+      features: Array.isArray(data.features) ? data.features : [],
+      journeys: Array.isArray(data.journeys) ? data.journeys : [],
+      adminFeatures: Array.isArray(data.adminFeatures) ? data.adminFeatures : []
+    };
+
+    const templatePath = path.join(__dirname, '..', 'templates', 'quotation.docx');
 
     if (!fs.existsSync(templatePath)) {
       return res.status(404).json({ error: 'ملف القالب غير موجود في templates/quotation.docx' });
@@ -161,7 +46,7 @@ router.post('/generate-docx', async (req, res) => {
     });
 
     // Render the document
-    doc.render(data);
+    doc.render(safeData);
 
     const buf = doc.getZip().generate({ type: 'nodebuffer' });
     
@@ -172,10 +57,17 @@ router.post('/generate-docx', async (req, res) => {
     
     res.send(buf);
   } catch (error) {
-    console.error('Proposal Generation Error:', error);
+    console.error('Proposal DOCX Generation Error:', error);
+    if (error.properties && error.properties.errors instanceof Array) {
+        const errorMessages = error.properties.errors.map(function (error) {
+            return error.properties.explanation;
+        }).join("\n");
+        console.error('Docxtemplater error messages:', errorMessages);
+    }
     res.status(500).json({ 
       error: 'فشل إنشاء العرض الفني',
-      details: error.message || 'Unknown error'
+      details: error.message || 'Unknown error',
+      docErrors: error.properties?.errors
     });
   }
 });
