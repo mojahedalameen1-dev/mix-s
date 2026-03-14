@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import AdminUsersList from "@/components/AdminUsersList"
 import AdminInviteManager from "@/components/AdminInviteManager"
 import { Users, Target, Shield, TrendingUp, UserPlus, Activity, ArrowUpRight, LayoutGrid, Zap } from "lucide-react"
+import { motion } from "framer-motion"
 
 export default async function AdminDashboard() {
   const supabase = createClient()
