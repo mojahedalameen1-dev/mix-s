@@ -35,9 +35,11 @@ export default function Sidebar({ role }: { role: string }) {
   }
 
   return (
-    <aside className="hidden md:flex flex-col w-72 h-full bg-card border-l relative z-[60]">
-      <div className="p-8">
-        <h1 className="text-2xl font-bold text-primary tracking-tighter">MIX-AA</h1>
+    <aside className="hidden md:flex flex-col w-72 h-full bg-zinc-50 dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800 relative z-[60]">
+      <div className="p-10">
+        <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tighter leading-none italic uppercase">
+          Mix<span className="text-primary">-AA</span>
+        </h1>
       </div>
 
       <nav className="flex-1 px-4 space-y-2">

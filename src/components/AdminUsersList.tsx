@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Profile } from "@/types/database"
-import { UserCheck, UserMinus, Edit3, Trash2, Mail, Briefcase, Target, Shield, Users } from "lucide-react"
+import { UserCheck, UserMinus, Edit3, Trash2, Mail, Briefcase, Target, Shield, Users, ArrowUpRight, CheckCircle2, Clock } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 export default function AdminUsersList() {
@@ -35,117 +35,92 @@ export default function AdminUsersList() {
   }
 
   if (loading) return (
-    <div className="space-y-4">
-      {[1, 2, 3].map(i => (
-        <div key={i} className="h-24 bg-muted/20 animate-pulse rounded-3xl" />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {[1, 2, 3, 4].map(i => (
+        <div key={i} className="h-32 bg-zinc-100 dark:bg-zinc-800/50 animate-pulse rounded-[32px]" />
       ))}
     </div>
   )
 
   return (
-    <div className="bg-card/30 backdrop-blur-xl border-2 border-primary/5 rounded-[32px] overflow-hidden shadow-2xl">
-      <div className="overflow-x-auto">
-        <table className="w-full text-right">
-          <thead>
-            <tr className="bg-primary/5 border-b-2 border-primary/5 text-muted-foreground">
-              <th className="px-8 py-6 font-black text-sm uppercase tracking-widest">المطور</th>
-              <th className="px-8 py-6 font-black text-sm uppercase tracking-widest">المنصب</th>
-              <th className="px-8 py-6 font-black text-sm uppercase tracking-widest">التارقت</th>
-              <th className="px-8 py-6 font-black text-sm uppercase tracking-widest">الحالة</th>
-              <th className="px-8 py-6 font-black text-sm uppercase tracking-widest">الإجراءات</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y-2 divide-primary/5">
-            <AnimatePresence>
-              {users.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-20 text-center text-muted-foreground">
-                    <div className="flex flex-col items-center gap-4 opacity-40">
-                      <Users className="w-16 h-16" />
-                      <p className="text-xl font-bold italic">لا يوجد مطورون في النظام حالياً</p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between px-4">
+        <h3 className="text-sm font-black text-zinc-400 uppercase tracking-[0.2em]">قائمة المطورين</h3>
+        <span className="text-[10px] font-bold px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full text-zinc-500">
+          إجمالي الأعضاء: {users.length}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <AnimatePresence mode="popLayout">
+          {users.length === 0 ? (
+            <div className="col-span-full py-24 text-center bg-zinc-50 dark:bg-zinc-900 shadow-inner rounded-[40px] border-2 border-dashed border-zinc-200 dark:border-zinc-800">
+              <div className="flex flex-col items-center gap-4 opacity-20">
+                <Users className="w-20 h-20" />
+                <p className="text-2xl font-black italic">لا يوجد مطورون نشطون حالياً</p>
+              </div>
+            </div>
+          ) : (
+            users.map((user, index) => (
+              <motion.div 
+                key={user.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="group relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-8 rounded-[36px] hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/5 transition-all flex items-center justify-between"
+              >
+                <div className="flex items-center gap-6">
+                  <div className="relative">
+                    <img 
+                      src={user.avatar_url || ""} 
+                      className="w-20 h-20 rounded-[28px] object-cover shadow-2xl border-4 border-zinc-50 dark:border-zinc-800 group-hover:scale-105 transition-transform" 
+                      alt={user.full_name || "User Avatar"} 
+                    />
+                    <div className={`absolute -bottom-1 -right-1 p-1 rounded-full border-4 border-white dark:border-zinc-900 ${
+                      user.status === 'active' ? 'bg-emerald-500' : 'bg-amber-500'
+                    }`}>
+                      {user.status === 'active' ? <CheckCircle2 className="w-3 h-3 text-white" /> : <Clock className="w-3 h-3 text-white" />}
                     </div>
-                  </td>
-                </tr>
-              ) : (
-                users.map((user, index) => (
-                  <motion.tr 
-                    key={user.id}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="hover:bg-primary/5 transition-all group"
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                       <h4 className="text-xl font-black tracking-tight text-zinc-900 dark:text-white">{user.full_name}</h4>
+                       {user.role === 'admin' && <Shield className="w-4 h-4 text-primary" />}
+                    </div>
+                    <p className="text-xs text-zinc-400 font-bold flex items-center gap-2">
+                      <Briefcase className="w-3.5 h-3.5 text-primary/60" />
+                      {user.job_title || "مطور أعمال"}
+                    </p>
+                    <div className="flex items-center gap-4 pt-2">
+                      <div className="px-3 py-1 bg-zinc-50 dark:bg-zinc-800 rounded-lg text-primary text-[10px] font-black border border-primary/10">
+                        {user.monthly_target?.toLocaleString() || 0} ر.س / شهرياً
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <button 
+                    onClick={() => toggleStatus(user.id, user.status)}
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
+                      user.status === 'pending' 
+                        ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 hover:scale-110" 
+                        : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10"
+                    }`}
+                    title={user.status === 'pending' ? "تفعيل الآن" : "تعطيل مؤقت"}
                   >
-                    <td className="p-8 flex items-center gap-5">
-                      <div className="relative">
-                        <img 
-                          src={user.avatar_url || ""} 
-                          className="w-16 h-16 rounded-[20px] object-cover shadow-lg border-2 border-white/10" 
-                          alt={user.full_name || "User Avatar"} 
-                        />
-                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-card ${
-                          user.status === 'active' ? 'bg-emerald-500' : 'bg-amber-500'
-                        }`} />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="font-black text-lg tracking-tight">{user.full_name}</p>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium">
-                          <Mail className="w-3 h-3" />
-                          {user.email}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="p-8">
-                      <span className="flex items-center gap-2 font-bold text-sm bg-muted/50 w-fit px-4 py-2 rounded-xl border border-primary/5">
-                        <Briefcase className="w-4 h-4 text-primary" />
-                        {user.job_title || "فني مبيعات"}
-                      </span>
-                    </td>
-                    <td className="p-8">
-                      <div className="space-y-2 w-32">
-                        <p className="font-black text-lg text-primary">{user.monthly_target?.toLocaleString() || 0} <span className="text-[10px] opacity-70">ر.س</span></p>
-                        <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full bg-primary/40 w-2/3" />
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-8">
-                      <span className={`px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-wider shadow-sm ${
-                        user.status === 'active' 
-                          ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" 
-                          : "bg-amber-500/10 text-amber-500 border border-amber-500/20"
-                      }`}>
-                        {user.status === 'active' ? 'نشط الآن' : 'في الانتظار'}
-                      </span>
-                    </td>
-                    <td className="p-8">
-                      <div className="flex items-center gap-3">
-                        <button 
-                          onClick={() => toggleStatus(user.id, user.status)}
-                          className={`p-3 rounded-2xl transition-all shadow-sm ${
-                            user.status === 'pending' 
-                              ? "bg-emerald-500 text-white hover:shadow-emerald-500/20" 
-                              : "bg-amber-500 text-white hover:shadow-amber-500/20"
-                          }`}
-                          title={user.status === 'pending' ? "تفعيل الحساب" : "تعطيل الحساب"}
-                        >
-                          {user.status === 'pending' ? <UserCheck className="w-5 h-5" /> : <UserMinus className="w-5 h-5" />}
-                        </button>
-                        
-                        <button className="p-3 bg-muted/50 rounded-2xl hover:bg-muted transition-all text-muted-foreground hover:text-foreground">
-                          <Edit3 className="w-5 h-5" />
-                        </button>
-                        
-                        <button className="p-3 bg-destructive/5 rounded-2xl hover:bg-destructive/10 transition-all text-destructive opacity-0 group-hover:opacity-100">
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))
-              )}
-            </AnimatePresence>
-          </tbody>
-        </table>
+                    {user.status === 'pending' ? <UserCheck className="w-6 h-6" /> : <UserMinus className="w-6 h-6" />}
+                  </button>
+
+                  <button className="w-12 h-12 bg-zinc-50 dark:bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 transition-all opacity-0 group-hover:opacity-100">
+                    <Edit3 className="w-5 h-5" />
+                  </button>
+                </div>
+              </motion.div>
+            ))
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )

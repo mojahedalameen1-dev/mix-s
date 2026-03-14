@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap');
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
@@ -78,7 +79,26 @@ html {
   scroll-behavior: smooth;
 }
 
-/* RTL Specifics */
 [dir="rtl"] {
-  font-family: 'Inter', 'system-ui', sans-serif; /* Recommended Arabic font should be added here */
+  font-family: 'IBM Plex Sans Arabic', 'system-ui', sans-serif;
+}
+
+/* Custom Glassmorphism Utilities */
+.glass-card {
+  @apply bg-card/60 backdrop-blur-xl border border-white/10 dark:border-white/5;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+.premium-gradient {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, #4338ca 100%);
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
 }
