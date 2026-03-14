@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   title: "MIX-AA | منصة إدارة المبيعات",
   description: "منصة احترافية لإدارة المبيعات والأداء لفريق مطوري الأعمال",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icons/icon.svg",
+    apple: "/icons/icon.svg",
+  },
 };
 
 export default function RootLayout({
