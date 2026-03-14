@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Copy, Check, Trash2, Clock, Plus, ExternalLink, ShieldCheck, Mail, Send, Calendar, Users } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -21,48 +21,96 @@ export default function AdminInviteManager() {
   const [expiration, setExpiration] = useState("24h")
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [errorStatus, setErrorStatus] = useState<string | null>(null)
   const supabase = createClient()
+
+  const fetchLinks = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('invite_links')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      if (data) setLinks(data)
+    } catch (error) {
+      console.error('Error fetching links:', error)
+      // Potentially add a toast notification here
+    }
+  }, [supabase])
 
   useEffect(() => {
     fetchLinks()
-  }, [supabase])
-
-  const fetchLinks = async () => {
-    const { data } = await supabase
-      .from('invite_links')
-      .select('*')
-      .order('created_at', { ascending: false })
-    
-    if (data) setLinks(data)
-  }
+  }, [fetchLinks])
 
   const createLink = async () => {
     if (!newLinkLabel) return
     setLoading(true)
     
-    const token = Math.random().toString(36).substring(2, 11) + '-' + Math.random().toString(36).substring(2, 6)
-    let expiresAt: Date | null = new Date()
-    
-    if (expiration === "24h") expiresAt.setHours(expiresAt.getHours() + 24)
-    else if (expiration === "7d") expiresAt.setDate(expiresAt.getDate() + 7)
-    else if (expiration === "30d") expiresAt.setDate(expiresAt.getDate() + 30)
-    else expiresAt = null
+    try {
+      setErrorStatus(null)
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      console.log("[Debug] Current Session:", session)
+      if (sessionError) console.error("[Debug] Session Error:", sessionError)
+      
+      const user = session?.user
+      if (!user) {
+        throw new Error("لم يتم العثور على جلسة صالحة. يرجى تسجيل الخروج والدخول مرة أخرى.")
+      }
 
-    await supabase.from('invite_links').insert({
-      token,
-      label: newLinkLabel,
-      expires_at: expiresAt?.toISOString(),
-      is_active: true
-    })
+      const token = Math.random().toString(36).substring(2, 11) + '-' + Math.random().toString(36).substring(2, 6)
+      let expiresAt: Date | null = new Date()
+      
+      if (expiration === "24h") expiresAt.setHours(expiresAt.getHours() + 24)
+      else if (expiration === "7d") expiresAt.setDate(expiresAt.getDate() + 7)
+      else if (expiration === "30d") expiresAt.setDate(expiresAt.getDate() + 30)
+      else expiresAt = null
 
-    setNewLinkLabel("")
-    fetchLinks()
-    setLoading(false)
+      console.log("[Debug] Attempting to insert invite link:", {
+        token,
+        label: newLinkLabel,
+        expires_at: expiresAt?.toISOString(),
+        created_by: user.id
+      })
+
+      const { error, status, statusText } = await supabase.from('invite_links').insert({
+        token,
+        label: newLinkLabel,
+        expires_at: expiresAt?.toISOString(),
+        is_active: true,
+        created_by: user.id
+      })
+
+      if (error) {
+        console.error("[Debug] Insert Error Details:", { error, status, statusText })
+        if (error.code === '42703') {
+          throw new Error("تنبيه: يجب تحديث هيكل قاعدة البيانات (الأعمدة ناقصة). يرجى مراجعة التعليمات.")
+        }
+        if (status === 401) {
+          throw new Error("خطأ 401: انتهت صلاحية الجلسة أو المفتاح غير صالح. يرجى إعادة تسجيل الدخول.")
+        }
+        throw new Error(`تعذر إنشاء الرابط: ${error.message} (${error.code})`)
+      }
+
+      setNewLinkLabel("")
+      fetchLinks()
+    } catch (error: any) {
+      console.error('Detailed Error Summary:', error)
+      setErrorStatus(error.message || "حدث خطأ غير متوقع")
+    } finally {
+      setLoading(false)
+    }
   }
 
   const deleteLink = async (id: string) => {
-    await supabase.from('invite_links').delete().eq('id', id)
-    fetchLinks()
+    try {
+      const { error } = await supabase.from('invite_links').delete().eq('id', id)
+      if (error) throw error
+      fetchLinks()
+    } catch (error) {
+      console.error('Error deleting link:', error)
+    }
   }
 
   const copyToClipboard = (token: string, id: string) => {
@@ -148,6 +196,19 @@ export default function AdminInviteManager() {
               </>
             )}
           </button>
+
+          <AnimatePresence>
+            {errorStatus && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-xs font-bold mt-4"
+              >
+                {errorStatus}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </section>
 

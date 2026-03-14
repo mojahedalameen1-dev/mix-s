@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { Bell, Search, Moon, Sun } from "lucide-react"
 import { Profile } from "@/types/database"
 import { createClient } from "@/lib/supabase/client"
@@ -15,12 +16,18 @@ export default function Header({ profile }: { profile: Profile }) {
   }, [theme])
 
   const toggleTheme = async () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light'
-    setTheme(newTheme)
-    await supabase
-      .from('profiles')
-      .update({ theme_preference: newTheme })
-      .eq('id', profile.id)
+    try {
+      const newTheme = theme === 'light' ? 'dark' : 'light'
+      setTheme(newTheme)
+      const { error } = await supabase
+        .from('profiles')
+        .update({ theme_preference: newTheme })
+        .eq('id', profile.id)
+      
+      if (error) throw error
+    } catch (error) {
+      console.error('Error toggling theme:', error)
+    }
   }
 
   return (
@@ -51,10 +58,13 @@ export default function Header({ profile }: { profile: Profile }) {
             <p className="text-sm font-bold leading-none">{profile.full_name}</p>
             <p className="text-xs text-muted-foreground mt-1">{profile.job_title || "عضو فريق"}</p>
           </div>
-          <img 
+          <Image 
             src={profile.avatar_url || "/default-avatar.png"} 
             alt={profile.full_name || ""} 
             className="w-10 h-10 rounded-xl object-cover ring-2 ring-primary/20"
+            width={40}
+            height={40}
+            unoptimized={!!profile.avatar_url?.includes('supabase')}
           />
         </div>
       </div>

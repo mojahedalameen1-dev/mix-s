@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { BADGES } from "@/utils/badges"
 
@@ -8,18 +8,23 @@ export function useBadges(userId: string) {
   const [userBadges, setUserBadges] = useState<any[]>([])
   const supabase = createClient()
 
-  useEffect(() => {
-    const fetchBadges = async () => {
-      const { data } = await supabase
+  const fetchBadges = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
         .from('badges')
         .select('*')
         .eq('engineer_id', userId)
       
+      if (error) throw error
       if (data) setUserBadges(data)
+    } catch (error) {
+      console.error('Error fetching badges:', error)
     }
-
-    fetchBadges()
   }, [userId, supabase])
+
+  useEffect(() => {
+    fetchBadges()
+  }, [fetchBadges])
 
   const checkAndAwardBadges = async (type: 'deal_closed' | 'meeting_held' | 'target_progress', value?: any) => {
     // This logic should ideally be on the server/trigger for security

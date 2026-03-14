@@ -30,6 +30,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 CREATE TABLE IF NOT EXISTS public.invite_links (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     token TEXT UNIQUE NOT NULL,
+    label TEXT,
+    expires_at TIMESTAMP WITH TIME ZONE,
     is_active BOOLEAN DEFAULT TRUE,
     usage_count INTEGER DEFAULT 0,
     created_by UUID REFERENCES public.profiles(id),

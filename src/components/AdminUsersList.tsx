@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
+import Image from "next/image"
 import { createClient } from "@/lib/supabase/client"
 import { Profile } from "@/types/database"
 import { UserCheck, UserMinus, Edit3, Trash2, Mail, Briefcase, Target, Shield, Users, ArrowUpRight, CheckCircle2, Clock } from "lucide-react"
@@ -11,27 +12,39 @@ export default function AdminUsersList() {
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
-  useEffect(() => {
-    fetchUsers()
+  const fetchUsers = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('status', { ascending: false })
+      
+      if (error) throw error
+      if (data) setUsers(data)
+    } catch (error) {
+      console.error('Error fetching users:', error)
+    } finally {
+      setLoading(false)
+    }
   }, [supabase])
 
-  const fetchUsers = async () => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('status', { ascending: false })
-    
-    if (data) setUsers(data)
-    setLoading(false)
-  }
+  useEffect(() => {
+    fetchUsers()
+  }, [fetchUsers])
 
   const toggleStatus = async (id: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'pending' ? 'active' : 'pending'
-    await supabase
-      .from('profiles')
-      .update({ status: newStatus })
-      .eq('id', id)
-    fetchUsers()
+    try {
+      const newStatus = currentStatus === 'pending' ? 'active' : 'pending'
+      const { error } = await supabase
+        .from('profiles')
+        .update({ status: newStatus })
+        .eq('id', id)
+      
+      if (error) throw error
+      fetchUsers()
+    } catch (error) {
+      console.error('Error toggling status:', error)
+    }
   }
 
   if (loading) return (
@@ -71,10 +84,13 @@ export default function AdminUsersList() {
               >
                 <div className="flex items-center gap-6">
                   <div className="relative">
-                    <img 
+                    <Image 
                       src={user.avatar_url || ""} 
                       className="w-20 h-20 rounded-[28px] object-cover shadow-2xl border-4 border-zinc-50 dark:border-zinc-800 group-hover:scale-105 transition-transform" 
-                      alt={user.full_name || "User Avatar"} 
+                      alt={user.full_name || "User Avatar"}
+                      width={80}
+                      height={80}
+                      unoptimized={!!user.avatar_url?.includes('supabase')}
                     />
                     <div className={`absolute -bottom-1 -right-1 p-1 rounded-full border-4 border-white dark:border-zinc-900 ${
                       user.status === 'active' ? 'bg-emerald-500' : 'bg-amber-500'

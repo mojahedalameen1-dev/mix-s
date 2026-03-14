@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Client } from "@/types/database"
 import { UserPlus, Search, Phone, Mail, Building2, MoreVertical } from "lucide-react"
@@ -14,23 +14,31 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
-  useEffect(() => {
-    const fetchClients = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+  const fetchClients = useCallback(async () => {
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError) throw authError
+
       if (user) {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('clients')
           .select('*')
           .eq('engineer_id', user.id)
           .order('created_at', { ascending: false })
         
+        if (error) throw error
         if (data) setClients(data)
       }
+    } catch (error) {
+      console.error('Error fetching clients:', error)
+    } finally {
       setLoading(false)
     }
-
-    fetchClients()
   }, [supabase])
+
+  useEffect(() => {
+    fetchClients()
+  }, [fetchClients])
 
   return (
     <div className="flex h-screen bg-background" dir="rtl">

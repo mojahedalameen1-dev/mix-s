@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Deal } from "@/types/database"
 import { Plus, Search, Calendar, Tag, ArrowRightLeft, Briefcase } from "lucide-react"
@@ -20,23 +20,31 @@ export default function DealsPage() {
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
-  useEffect(() => {
-    const fetchDeals = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+  const fetchDeals = useCallback(async () => {
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError) throw authError
+      
       if (user) {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('deals')
           .select('*, clients(client_name)')
           .eq('engineer_id', user.id)
           .order('created_at', { ascending: false })
         
+        if (error) throw error
         if (data) setDeals(data)
       }
+    } catch (error) {
+      console.error('Error fetching deals:', error)
+    } finally {
       setLoading(false)
     }
-
-    fetchDeals()
   }, [supabase])
+
+  useEffect(() => {
+    fetchDeals()
+  }, [fetchDeals])
 
   return (
     <div className="flex h-screen bg-background" dir="rtl">

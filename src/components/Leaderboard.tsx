@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
+import Image from "next/image"
 import { createClient } from "@/lib/supabase/client"
 import { Profile } from "@/types/database"
 import { Crown } from "lucide-react"
@@ -10,9 +11,9 @@ export default function Leaderboard() {
   const [leaders, setLeaders] = useState<any[]>([])
   const supabase = createClient()
 
-  useEffect(() => {
-    const fetchLeaders = async () => {
-      const { data: profiles } = await supabase
+  const fetchLeaders = useCallback(async () => {
+    try {
+      const { data: profiles, error } = await supabase
         .from('profiles')
         .select(`
           id,
@@ -22,6 +23,8 @@ export default function Leaderboard() {
           deals (value, status)
         `)
         .eq('status', 'active')
+
+      if (error) throw error
 
       if (profiles) {
         const processed = profiles.map(p => {
@@ -40,8 +43,12 @@ export default function Leaderboard() {
 
         setLeaders(processed)
       }
+    } catch (error) {
+      console.error('Error fetching leaders:', error)
     }
+  }, [supabase])
 
+  useEffect(() => {
     fetchLeaders()
 
     // Subscribe to deals for realtime updates
@@ -55,7 +62,7 @@ export default function Leaderboard() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [supabase])
+  }, [fetchLeaders, supabase])
 
   return (
     <div className="p-8 bg-card border rounded-3xl shadow-sm space-y-6">
@@ -75,10 +82,13 @@ export default function Leaderboard() {
               className="flex items-center gap-4 p-3 hover:bg-muted/50 rounded-2xl transition-all"
             >
               <div className="relative">
-                <img 
+                <Image 
                   src={leader.avatar || "/default-avatar.png"} 
                   className="w-12 h-12 rounded-full object-cover ring-2 ring-background shadow-sm"
                   alt="" 
+                  width={48}
+                  height={48}
+                  unoptimized={!!leader.avatar?.includes('supabase')}
                 />
                 {i === 0 && (
                   <div className="absolute -top-2 -right-2 bg-yellow-400 p-1 rounded-full shadow-lg">
