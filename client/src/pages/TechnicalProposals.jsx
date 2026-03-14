@@ -54,30 +54,65 @@ export default function TechnicalProposals() {
 
   const { progress, message, result, status, startStream } = useStreamAnalysis();
 
+  // Resilient JSON extraction helper
+  const extractJSON = (text) => {
+    if (!text) return null;
+    
+    // Attempt to find JSON block strictly
+    let match = text.match(/```json\s*([\s\S]*?)\s*```/);
+    let jsonStr = match ? match[1] : null;
+
+    if (!jsonStr) {
+      // If no closed block, try to find open block
+      match = text.match(/```json\s*([\s\S]*)$/);
+      if (match) {
+        jsonStr = match[1];
+        // Try to fix truncated JSON by closing brackets
+        let openBraces = (jsonStr.match(/{/g) || []).length;
+        let closeBraces = (jsonStr.match(/}/g) || []).length;
+        let openBrackets = (jsonStr.match(/\[/g) || []).length;
+        let closeBrackets = (jsonStr.match(/]/g) || []).length;
+        
+        jsonStr += ']'.repeat(Math.max(0, openBrackets - closeBrackets));
+        jsonStr += '}'.repeat(Math.max(0, openBraces - closeBraces));
+      }
+    }
+
+    if (!jsonStr) return null;
+
+    try {
+      return JSON.parse(jsonStr);
+    } catch (e) {
+      // Last resort: simple regex for common fields if JSON still fails
+      console.warn('JSON Parse failed, attempting partial extraction', e);
+      return null;
+    }
+  };
+
   // Handle Stream Result
   useEffect(() => {
     if (status === 'done' && result && processedResultRef.current !== result) {
       processedResultRef.current = result;
       const fullText = result.proposal || result;
-      const jsonMatch = fullText.match(/```json\s*([\s\S]*?)\s*```/);
       
-      let cleanProposal = fullText;
-      let aiStructuredData = null;
-
-      if (jsonMatch) {
-        try {
-          // Extract data from the first match
-          aiStructuredData = JSON.parse(jsonMatch[1]);
-          // Strip ALL json code blocks from the visible text
-          cleanProposal = fullText.replace(/```json[\s\S]*?```/g, '').trim();
-        } catch (e) {
-          console.error('Failed to parse AI JSON:', e);
-        }
-      }
+      const aiStructuredData = extractJSON(fullText);
+      
+      // Clean up text for the UI: remove ANY code blocks that look like JSON metadata
+      const cleanProposal = fullText.replace(/```json[\s\S]*?```/g, '')
+                                   .replace(/```json[\s\S]*$/g, '') // Handle unclosed blocks
+                                   .trim();
 
       setFormData(prev => ({ ...prev, proposalText: cleanProposal }));
       
       if (aiStructuredData) {
+        // Merge extracted data into formData as well to ensure they are sent in export
+        setFormData(prev => ({
+          ...prev,
+          projectType: aiStructuredData.projectType || prev.projectType,
+          projectActivity: aiStructuredData.projectActivity || prev.projectActivity,
+          projectDescription: aiStructuredData.projectDescription || prev.projectDescription,
+        }));
+
         setStructuredData({
           ...aiStructuredData,
           strategicGoals: aiStructuredData.strategicGoals || [],
