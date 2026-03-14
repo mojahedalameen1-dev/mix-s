@@ -14,7 +14,7 @@ export type Profile = {
 }
 
 export type Client = {
-  id: string
+  id: number
   name: string
   phone: string | null
   email: string | null
@@ -25,11 +25,11 @@ export type Client = {
 }
 
 export type Deal = {
-  id: string
+  id: number
   title: string
   value: number
   status: 'new' | 'in_progress' | 'won' | 'lost'
-  client_id: string
+  client_id: number
   engineer_id: string
   expected_close_date: string | null
   notes: string | null
@@ -63,8 +63,8 @@ export type TeamTarget = {
 }
 
 export type MeetingPrep = {
-  id: string
-  client_id: string | null
+  id: number
+  client_id: number | null
   title: string
   client_name: string | null
   sector: string | null
@@ -78,7 +78,7 @@ export type MeetingPrep = {
 
 export type Score = {
   id: number
-  client_id: string
+  client_id: number
   budget_score: number
   authority_score: number
   need_score: number
@@ -89,8 +89,8 @@ export type Score = {
 }
 
 export type File = {
-  id: string
-  client_id: string
+  id: number
+  client_id: number
   file_name: string
   file_path: string
   file_type_label: string

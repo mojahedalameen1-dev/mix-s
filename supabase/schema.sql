@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS public.invite_links (
 
 -- 3. CLIENTS Table
 CREATE TABLE IF NOT EXISTS public.clients (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     phone TEXT,
     email TEXT,
@@ -50,11 +50,11 @@ CREATE TABLE IF NOT EXISTS public.clients (
 
 -- 4. DEALS Table
 CREATE TABLE IF NOT EXISTS public.deals (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
     value NUMERIC DEFAULT 0,
     status TEXT CHECK (status IN ('new', 'in_progress', 'won', 'lost')) DEFAULT 'new',
-    client_id UUID REFERENCES public.clients(id) ON DELETE CASCADE,
+    client_id INTEGER REFERENCES public.clients(id) ON DELETE CASCADE,
     engineer_id UUID REFERENCES public.profiles(id) NOT NULL,
     expected_close_date DATE,
     notes TEXT,
@@ -93,8 +93,8 @@ CREATE TABLE IF NOT EXISTS public.team_targets (
 
 -- 8. MEETING PREPS Table
 CREATE TABLE IF NOT EXISTS public.meeting_preps (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    client_id UUID REFERENCES public.clients(id) ON DELETE SET NULL,
+    id SERIAL PRIMARY KEY,
+    client_id INTEGER REFERENCES public.clients(id) ON DELETE SET NULL,
     title TEXT NOT NULL,
     client_name TEXT, -- Fallback for legacy
     sector TEXT,
@@ -123,8 +123,8 @@ CREATE TABLE IF NOT EXISTS public.scores (
 
 -- 10. FILES Table
 CREATE TABLE IF NOT EXISTS public.files (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    client_id UUID REFERENCES public.clients(id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    client_id INTEGER REFERENCES public.clients(id) ON DELETE CASCADE,
     file_name TEXT NOT NULL,
     file_path TEXT NOT NULL,
     file_type_label TEXT DEFAULT 'أخرى',

@@ -49,7 +49,11 @@ router.post('/generate-docx', async (req, res) => {
       return res.status(404).json({ error: 'ملف القالب غير موجود في templates/quotation.docx' });
     }
 
-    const content = fs.readFileSync(templatePath, 'binary');
+    // Fix: Read as Buffer instead of 'binary' string for better reliability
+    const content = fs.readFileSync(templatePath);
+    
+    // Optional: Pre-process XML to fix split tags like {<w:t>{</w:t>
+    // Note: docxtemplater v3 handles many cases, but manual cleaning can help with extreme corruption
     const zip = new PizZip(content);
     
     const doc = new Docxtemplater(zip, {
