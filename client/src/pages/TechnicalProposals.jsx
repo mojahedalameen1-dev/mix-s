@@ -28,11 +28,18 @@ export default function TechnicalProposals() {
   const [exportingDocx, setExportingDocx] = useState(false);
   const processedResultRef = React.useRef(null);
 
+  // Helper for proposal number
+  const generateOfferNumber = () => {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-GB').replace(/\//g, ''); // DDMMYYYY
+    return `AAIT-${dateStr}-01`;
+  };
+
   // Form State
   const [formData, setFormData] = useState({
     clientName: '',
     date: new Date().toISOString().split('T')[0],
-    offerNumber: `MS-${Math.floor(1000 + Math.random() * 9000)}`,
+    offerNumber: generateOfferNumber(),
     managerName: '',
     meetingNotes: '',
     proposalText: '',
@@ -126,11 +133,25 @@ export default function TechnicalProposals() {
     }
   }, [status, result]);
 
+  // Currency Formatter
+  const formatSAR = (amount) => {
+    if (!amount || isNaN(amount)) return '0 ريال سعودي';
+    return `${Number(amount).toLocaleString('en-US')} ريال سعودي`;
+  };
+
   useEffect(() => {
     if (formData.price) {
       const p = parseFloat(formData.price) || 0;
       const v = p * 0.15;
-      setFormData(prev => ({ ...prev, vat: v.toFixed(2), total: (p + v).toFixed(2) }));
+      const totalVal = p + v;
+      setFormData(prev => ({ 
+        ...prev, 
+        vat: v.toFixed(2), 
+        total: totalVal.toFixed(2),
+        formattedPrice: formatSAR(p),
+        formattedVat: formatSAR(v),
+        formattedTotal: formatSAR(totalVal)
+      }));
     }
   }, [formData.price]);
 
@@ -169,7 +190,10 @@ export default function TechnicalProposals() {
     try {
       const payload = {
         ...formData,
-        ...structuredData
+        ...structuredData,
+        price: formData.formattedPrice || formData.price,
+        vat: formData.formattedVat || formData.vat,
+        total: formData.formattedTotal || formData.total
       };
 
       const endpoint = '/api/proposals/generate-docx';
@@ -300,9 +324,6 @@ export default function TechnicalProposals() {
           <div className="glass-card p-6 flex-1 flex flex-col min-h-[600px]" style={{ background: cardBg, border: `1px solid ${border}`, borderRadius: '24px' }}>
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
-                  <div className="flex bg-white/5 p-2 rounded-xl border border-white/10 text-xs font-bold text-blue-400">
-                    تعديل العرض الفني
-                  </div>
                 <div className="flex gap-2">
                   <button 
                     onClick={() => handleExport('docx')} disabled={exportingDocx || !formData.proposalText}
