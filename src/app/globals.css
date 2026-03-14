@@ -4,7 +4,7 @@
 @import 'tailwindcss/utilities';
 
 :root {
-  --background: 0 0% 100%;
+  --background: 210 20% 98%;
   --foreground: 222.2 84% 4.9%;
 
   --card: 0 0% 100%;
@@ -32,37 +32,7 @@
   --input: 214.3 31.8% 91.4%;
   --ring: 221.2 83.2% 53.3%;
 
-  --radius: 0.5rem;
-}
-
-.dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-
-  --card: 240 10% 4.9%;
-  --card-foreground: 0 0% 98%;
-
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
-
-  --primary: 263.4 70% 50.4%;
-  --primary-foreground: 210 40% 98%;
-
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
-
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
-
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --ring: 263.4 70% 50.4%;
+  --radius: 0.75rem;
 }
 
 @layer base {
@@ -83,43 +53,22 @@ html {
   font-family: 'IBM Plex Sans Arabic', 'system-ui', sans-serif;
 }
 
-/* Custom Glassmorphism Utilities */
+/* Updated Glassmorphism for Light Theme */
 .glass-card {
-  @apply bg-card/40 backdrop-blur-2xl border border-white/10 dark:border-white/[0.05];
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  @apply bg-white/70 backdrop-blur-md border border-white/40;
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.05);
 }
 
 .premium-gradient {
-  background: linear-gradient(135deg, hsl(var(--primary)) 0%, #7c3aed 100%);
-}
-
-.premium-gradient-hover {
-  background: linear-gradient(135deg, #7c3aed 0%, hsl(var(--primary)) 100%);
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, #4f46e5 100%);
 }
 
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
 
-.animate-pulse-slow {
-  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
 @keyframes float {
   0% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
   100% { transform: translateY(0px); }
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.1; }
-  50% { opacity: 0.3; }
-}
-
-.noise-bg {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3Map%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-}
-
-.mask-fade-bottom {
-  mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
 }
