@@ -74,13 +74,13 @@ export default function ClientsPage() {
               {clients.map((client) => (
                 <tr key={client.id} className="hover:bg-muted/20 transition-colors">
                   <td className="p-4">
-                    <div className="font-bold">{client.name}</div>
+                    <div className="font-bold">{client.client_name}</div>
                     <div className="text-xs text-muted-foreground">{client.email}</div>
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
                       <Building2 className="w-4 h-4 text-muted-foreground" />
-                      {client.company || "—"}
+                      {client.client_type || client.city || "—"}
                     </div>
                   </td>
                   <td className="p-4">

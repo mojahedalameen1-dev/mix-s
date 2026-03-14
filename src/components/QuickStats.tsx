@@ -21,7 +21,7 @@ export default function QuickStats({ profile }: { profile: Profile }) {
       
       const { data: deals } = await supabase
         .from('deals')
-        .select('value, status')
+        .select('expected_value, stage')
         .eq('engineer_id', profile.id)
         .gte('created_at', firstDayOfMonth)
 
@@ -30,8 +30,8 @@ export default function QuickStats({ profile }: { profile: Profile }) {
         .select('*', { count: 'exact', head: true })
         .eq('engineer_id', profile.id)
 
-      const totalSales = deals?.filter(d => d.status === 'won').reduce((acc, d) => acc + (d.value || 0), 0) || 0
-      const closedDeals = deals?.filter(d => d.status === 'won').length || 0
+      const totalSales = deals?.filter(d => d.stage === 'مغلقة ناجحة' || d.stage === 'won').reduce((acc, d) => acc + (Number(d.expected_value) || 0), 0) || 0
+      const closedDeals = deals?.filter(d => d.stage === 'مغلقة ناجحة' || d.stage === 'won').length || 0
       const targetProgress = profile.monthly_target > 0 ? (totalSales / profile.monthly_target) * 100 : 0
 
       setStats({

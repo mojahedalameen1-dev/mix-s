@@ -15,10 +15,13 @@ export type Profile = {
 
 export type Client = {
   id: number
-  name: string
+  client_name: string
   phone: string | null
   email: string | null
-  company: string | null
+  client_type: string | null
+  city: string | null
+  sector: string | null
+  channel: string | null
   notes: string | null
   engineer_id: string
   created_at: string
@@ -26,13 +29,16 @@ export type Client = {
 
 export type Deal = {
   id: number
-  title: string
-  value: number
-  status: 'new' | 'in_progress' | 'won' | 'lost'
+  deal_name: string
+  expected_value: number
+  payment_percentage: number
+  stage: string | null
+  last_contact_date: string | null
+  next_followup_date: string | null
+  ticket_link: string | null
+  slack_code: string | null
   client_id: number
   engineer_id: string
-  expected_close_date: string | null
-  notes: string | null
   created_at: string
 }
 

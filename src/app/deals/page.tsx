@@ -26,7 +26,7 @@ export default function DealsPage() {
       if (user) {
         const { data } = await supabase
           .from('deals')
-          .select('*, clients(name)')
+          .select('*, clients(client_name)')
           .eq('engineer_id', user.id)
           .order('created_at', { ascending: false })
         
@@ -58,8 +58,8 @@ export default function DealsPage() {
           {deals.map((deal: any) => (
             <div key={deal.id} className="p-6 bg-card border rounded-3xl space-y-4 hover:shadow-lg transition-all group">
               <div className="flex items-start justify-between">
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${STATUS_MAP[deal.status as keyof typeof STATUS_MAP].color}`}>
-                  {STATUS_MAP[deal.status as keyof typeof STATUS_MAP].label}
+                <span className={`px-3 py-1 rounded-full text-xs font-bold ${STATUS_MAP[deal.stage as keyof typeof STATUS_MAP]?.color || "bg-muted"}`}>
+                  {STATUS_MAP[deal.stage as keyof typeof STATUS_MAP]?.label || deal.stage}
                 </span>
                 <button className="p-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <ArrowRightLeft className="w-4 h-4 text-muted-foreground" />
@@ -67,23 +67,23 @@ export default function DealsPage() {
               </div>
 
               <div className="space-y-1">
-                <h3 className="text-xl font-extrabold line-clamp-1">{deal.title}</h3>
+                <h3 className="text-xl font-extrabold line-clamp-1">{deal.deal_name}</h3>
                 <p className="text-sm text-muted-foreground flex items-center gap-2">
                   <Tag className="w-3 h-3" />
-                  {deal.clients?.name || "بدون عميل"}
+                  {deal.clients?.client_name || "بدون عميل"}
                 </p>
               </div>
 
               <div className="flex items-center justify-between pt-4 border-t border-dashed">
                 <div className="space-y-1">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-widest">القيمة المتوقعة</p>
-                  <p className="text-lg font-black text-primary">{deal.value.toLocaleString()} ر.س</p>
+                  <p className="text-lg font-black text-primary">{deal.expected_value?.toLocaleString()} ر.س</p>
                 </div>
                 <div className="text-left space-y-1">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest text-right">تاريخ الإغلاق</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest text-right">المتابعة القادمة</p>
                   <div className="flex items-center gap-2 text-sm font-medium">
                     <Calendar className="w-3 h-3" />
-                    {deal.expected_close_date ? new Date(deal.expected_close_date).toLocaleDateString('ar-EG') : "غير محدد"}
+                    {deal.next_followup_date ? new Date(deal.next_followup_date).toLocaleDateString('ar-EG') : "غير محدد"}
                   </div>
                 </div>
               </div>
