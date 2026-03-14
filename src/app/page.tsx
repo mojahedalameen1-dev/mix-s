@@ -3,6 +3,8 @@ import { redirect } from "next/navigation"
 import DashboardContent from "@/components/DashboardContent"
 import PendingApproval from "@/components/PendingApproval"
 
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage() {
   const supabase = createClient()
   

@@ -66,7 +66,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && isAuthPage) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   if (user && isAdminPage) {
@@ -77,7 +77,7 @@ export async function updateSession(request: NextRequest) {
       .single()
 
     if (profile?.role !== 'admin') {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+      return NextResponse.redirect(new URL('/', request.url))
     }
   }
 

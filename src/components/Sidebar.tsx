@@ -16,7 +16,7 @@ import {
 import { createClient } from "@/lib/supabase/client"
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "الرئيسية", path: "/dashboard", adminOnly: false },
+  { icon: LayoutDashboard, label: "الرئيسية", path: "/", adminOnly: false },
   { icon: Users, label: "العملاء", path: "/clients", adminOnly: false },
   { icon: Briefcase, label: "الصفقات", path: "/deals", adminOnly: false },
   { icon: Trophy, label: "التارقت العام", path: "/leaderboard", adminOnly: false },
