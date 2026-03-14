@@ -43,9 +43,10 @@ export default function QuickStats({ profile }: { profile: Profile }) {
     }
 
     fetchStats()
-  }, [profile.id, profile.monthly_target])
+    fetchStats()
+  }, [profile.id, profile.monthly_target, supabase])
 
-  constCards = [
+  const cards = [
     { label: "إجمالي المبيعات", value: `${stats.totalSales.toLocaleString()} ر.س`, icon: Banknote, color: "text-emerald-500", bg: "bg-emerald-500/10" },
     { label: "صفقات مغلقة", value: stats.closedDeals, icon: TrendingUp, color: "text-blue-500", bg: "bg-blue-500/10" },
     { label: "عدد العملاء", value: stats.totalClients, icon: Users, color: "text-orange-500", bg: "bg-orange-500/10" },
@@ -54,7 +55,7 @@ export default function QuickStats({ profile }: { profile: Profile }) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {constCards.map((card, i) => (
+      {cards.map((card, i) => (
         <div key={i} className="p-6 bg-card border rounded-2xl space-y-4 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div className={`p-3 rounded-xl ${card.bg}`}>

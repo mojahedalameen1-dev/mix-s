@@ -1,0 +1,141 @@
+
+> mix-sales@1.0.0 build
+> next build
+
+  ▲ Next.js 14.2.35
+  - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+./src/components/AdminInviteManager.tsx
+14:6  Warning: React Hook useEffect has a missing dependency: 'fetchToken'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/AdminUsersList.tsx
+14:6  Warning: React Hook useEffect has a missing dependency: 'fetchUsers'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+50:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/Header.tsx
+54:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/Leaderboard.tsx
+78:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/9) ...
+Error: Your project's URL and Key are required to create a Supabase client!
+
+Check your Supabase project's API settings to find these values
+
+https://supabase.com/dashboard/project/_/settings/api
+    at rC (C:\projects\mix sales\.next\server\chunks\647.js:37:54536)
+    at r (C:\projects\mix sales\.next\server\app\clients\page.js:1:8379)
+    at h (C:\projects\mix sales\.next\server\app\clients\page.js:1:3381)
+    at nj (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:46252)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47572)
+    at nL (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:64547)
+    at nI (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47011)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47718)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:61547)
+    at nL (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:64547) {
+  digest: '2973433431'
+}
+
+Error occurred prerendering page "/clients". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Your project's URL and Key are required to create a Supabase client!
+
+Check your Supabase project's API settings to find these values
+
+https://supabase.com/dashboard/project/_/settings/api
+    at rC (C:\projects\mix sales\.next\server\chunks\647.js:37:54536)
+    at r (C:\projects\mix sales\.next\server\app\clients\page.js:1:8379)
+    at h (C:\projects\mix sales\.next\server\app\clients\page.js:1:3381)
+    at nj (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:46252)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47572)
+    at nL (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:64547)
+    at nI (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47011)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47718)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:61547)
+    at nL (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:64547)
+   Generating static pages (2/9) 
+Error: Your project's URL and Key are required to create a Supabase client!
+
+Check your Supabase project's API settings to find these values
+
+https://supabase.com/dashboard/project/_/settings/api
+    at rC (C:\projects\mix sales\.next\server\chunks\647.js:37:54536)
+    at r (C:\projects\mix sales\.next\server\app\deals\page.js:1:8026)
+    at h (C:\projects\mix sales\.next\server\app\deals\page.js:1:3074)
+    at nj (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:46252)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47572)
+    at nL (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:64547)
+    at nI (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47011)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47718)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:61547)
+    at nL (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:64547) {
+  digest: '1225170135'
+}
+
+Error occurred prerendering page "/deals". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Your project's URL and Key are required to create a Supabase client!
+
+Check your Supabase project's API settings to find these values
+
+https://supabase.com/dashboard/project/_/settings/api
+    at rC (C:\projects\mix sales\.next\server\chunks\647.js:37:54536)
+    at r (C:\projects\mix sales\.next\server\app\deals\page.js:1:8026)
+    at h (C:\projects\mix sales\.next\server\app\deals\page.js:1:3074)
+    at nj (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:46252)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47572)
+    at nL (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:64547)
+    at nI (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47011)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47718)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:61547)
+    at nL (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:64547)
+   Generating static pages (4/9) 
+   Generating static pages (6/9) 
+Error: Your project's URL and Key are required to create a Supabase client!
+
+Check your Supabase project's API settings to find these values
+
+https://supabase.com/dashboard/project/_/settings/api
+    at rC (C:\projects\mix sales\.next\server\chunks\647.js:37:54536)
+    at n (C:\projects\mix sales\.next\server\app\login\page.js:1:3492)
+    at l (C:\projects\mix sales\.next\server\app\login\page.js:1:2207)
+    at nj (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:46252)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47572)
+    at nL (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:64547)
+    at nI (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47011)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47718)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:61547)
+    at nL (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:64547) {
+  digest: '1368462632'
+}
+
+Error occurred prerendering page "/login". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Your project's URL and Key are required to create a Supabase client!
+
+Check your Supabase project's API settings to find these values
+
+https://supabase.com/dashboard/project/_/settings/api
+    at rC (C:\projects\mix sales\.next\server\chunks\647.js:37:54536)
+    at n (C:\projects\mix sales\.next\server\app\login\page.js:1:3492)
+    at l (C:\projects\mix sales\.next\server\app\login\page.js:1:2207)
+    at nj (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:46252)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47572)
+    at nL (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:64547)
+    at nI (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47011)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:47718)
+    at nM (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:61547)
+    at nL (C:\projects\mix sales\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:64547)
+ ✓ Generating static pages (9/9)
+
+> Export encountered errors on following paths:
+	/clients/page: /clients
+	/deals/page: /deals
+	/login/page: /login

@@ -19,7 +19,7 @@ export function useBadges(userId: string) {
     }
 
     fetchBadges()
-  }, [userId])
+  }, [userId, supabase])
 
   const checkAndAwardBadges = async (type: 'deal_closed' | 'meeting_held' | 'target_progress', value?: any) => {
     // This logic should ideally be on the server/trigger for security

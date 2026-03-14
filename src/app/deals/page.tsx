@@ -1,9 +1,11 @@
 "use client"
 
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Deal } from "@/types/database"
-import { Plus, Search, Calendar, Tag, ArrowRightLeft } from "lucide-react"
+import { Plus, Search, Calendar, Tag, ArrowRightLeft, Briefcase } from "lucide-react"
 import Sidebar from "@/components/Sidebar"
 
 const STATUS_MAP = {
@@ -34,7 +36,7 @@ export default function DealsPage() {
     }
 
     fetchDeals()
-  }, [])
+  }, [supabase])
 
   return (
     <div className="flex h-screen bg-background" dir="rtl">

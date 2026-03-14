@@ -33,11 +33,11 @@ export default function NotificationBell({ userId }: { userId: string }) {
     // Realtime subscription
     const channel = supabase
       .channel(`user-notifications-${userId}`)
-      .on('postgres_changes', { 
+      .on('postgres_changes' as any, { 
         event: 'INSERT', 
         table: 'notifications',
         filter: `user_id=eq.${userId}`
-      }, (payload) => {
+      }, (payload: any) => {
         setNotifications(prev => [payload.new, ...prev].slice(0, 20))
         setUnreadCount(prev => prev + 1)
         // Optional: show toast
@@ -47,7 +47,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [userId])
+  }, [userId, supabase])
 
   const markAsRead = async () => {
     if (unreadCount === 0) return

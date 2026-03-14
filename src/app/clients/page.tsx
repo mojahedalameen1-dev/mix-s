@@ -1,5 +1,7 @@
 "use client"
 
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Client } from "@/types/database"
@@ -28,7 +30,7 @@ export default function ClientsPage() {
     }
 
     fetchClients()
-  }, [])
+  }, [supabase])
 
   return (
     <div className="flex h-screen bg-background" dir="rtl">

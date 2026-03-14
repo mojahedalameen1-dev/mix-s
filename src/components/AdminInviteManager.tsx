@@ -11,7 +11,7 @@ export default function AdminInviteManager() {
 
   useEffect(() => {
     fetchToken()
-  }, [])
+  }, [supabase])
 
   const fetchToken = async () => {
     const { data } = await supabase

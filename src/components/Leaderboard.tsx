@@ -47,7 +47,7 @@ export default function Leaderboard() {
     // Subscribe to deals for realtime updates
     const channel = supabase
       .channel('leaderboard-updates')
-      .on('postgres_changes', { event: '*', table: 'deals' }, () => {
+      .on('postgres_changes' as any, { event: '*', table: 'deals' }, () => {
         fetchLeaders()
       })
       .subscribe()
@@ -55,7 +55,7 @@ export default function Leaderboard() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [])
+  }, [supabase])
 
   return (
     <div className="p-8 bg-card border rounded-3xl shadow-sm space-y-6">

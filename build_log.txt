@@ -1,0 +1,24 @@
+
+> mix-sales@1.0.0 build
+> next build
+
+  ▲ Next.js 14.2.35
+  - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+ ⨯ ESLint: Invalid Options: - Unknown options: useEslintrc, extensions - 'extensions' has been removed.
+Failed to compile.
+
+./src/app/deals/page.tsx:93:18
+Type error: Cannot find name 'Briefcase'.
+
+[0m [90m 91 |[39m             [33m<[39m[33mdiv[39m className[33m=[39m[32m"col-span-full p-20 text-center space-y-4 border-2 border-dashed rounded-3xl bg-muted/20"[39m[33m>[39m[0m
+[0m [90m 92 |[39m               [33m<[39m[33mdiv[39m className[33m=[39m[32m"w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto"[39m[33m>[39m[0m
+[0m[31m[1m>[22m[39m[90m 93 |[39m                 [33m<[39m[33mBriefcase[39m className[33m=[39m[32m"w-10 h-10 text-muted-foreground"[39m [33m/[39m[33m>[39m[0m
+[0m [90m    |[39m                  [31m[1m^[22m[39m[0m
+[0m [90m 94 |[39m               [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m[0m
+[0m [90m 95 |[39m               [33m<[39m[33mh3[39m className[33m=[39m[32m"text-xl font-bold"[39m[33m>[39mلا توجد صفقات بعد[33m<[39m[33m/[39m[33mh3[39m[33m>[39m[0m
+[0m [90m 96 |[39m               [33m<[39m[33mp[39m className[33m=[39m[32m"text-muted-foreground"[39m[33m>[39mابدأ بإضافة أول صفقة لك لتبدأ تتبع مبيعاتك[33m<[39m[33m/[39m[33mp[39m[33m>[39m[0m
+Next.js build worker exited with code: 1 and signal: null

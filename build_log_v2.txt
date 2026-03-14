@@ -1,0 +1,57 @@
+
+> mix-sales@1.0.0 build
+> next build
+
+  ▲ Next.js 14.2.35
+  - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+./src/app/clients/page.tsx
+31:6  Warning: React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/deals/page.tsx
+37:6  Warning: React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/AdminInviteManager.tsx
+14:6  Warning: React Hook useEffect has a missing dependency: 'fetchToken'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/AdminUsersList.tsx
+14:6  Warning: React Hook useEffect has a missing dependency: 'fetchUsers'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+50:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+50:17  Warning: img elements must have an alt prop, either with meaningful text, or an empty string for decorative images.  jsx-a11y/alt-text
+
+./src/components/Header.tsx
+54:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/Leaderboard.tsx
+58:6  Warning: React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+78:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/NotificationBell.tsx
+50:6  Warning: React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/QuickStats.tsx
+46:6  Warning: React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/hooks/useBadges.ts
+22:6  Warning: React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+Failed to compile.
+
+./src/components/Leaderboard.tsx:50:11
+Type error: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '"postgres_changes"' is not assignable to parameter of type '"system"'.
+
+[0m [90m 48 |[39m     [36mconst[39m channel [33m=[39m supabase[0m
+[0m [90m 49 |[39m       [33m.[39mchannel([32m'leaderboard-updates'[39m)[0m
+[0m[31m[1m>[22m[39m[90m 50 |[39m       [33m.[39mon([32m'postgres_changes'[39m[33m,[39m { event[33m:[39m [32m'*'[39m[33m,[39m table[33m:[39m [32m'deals'[39m }[33m,[39m () [33m=>[39m {[0m
+[0m [90m    |[39m           [31m[1m^[22m[39m[0m
+[0m [90m 51 |[39m         fetchLeaders()[0m
+[0m [90m 52 |[39m       })[0m
+[0m [90m 53 |[39m       [33m.[39msubscribe()[0m
+Next.js build worker exited with code: 1 and signal: null

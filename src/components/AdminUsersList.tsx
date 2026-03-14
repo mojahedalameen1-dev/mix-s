@@ -11,7 +11,7 @@ export default function AdminUsersList() {
 
   useEffect(() => {
     fetchUsers()
-  }, [])
+  }, [supabase])
 
   const fetchUsers = async () => {
     const { data } = await supabase
@@ -47,7 +47,7 @@ export default function AdminUsersList() {
           {users.map((user) => (
             <tr key={user.id} className="hover:bg-muted/10 transition-colors">
               <td className="p-6 flex items-center gap-4">
-                <img src={user.avatar_url || ""} className="w-12 h-12 rounded-xl object-cover" />
+                <img src={user.avatar_url || ""} className="w-12 h-12 rounded-xl object-cover" alt={user.full_name || "User Avatar"} />
                 <div>
                   <p className="font-bold">{user.full_name}</p>
                   <p className="text-xs text-muted-foreground">{user.email}</p>
