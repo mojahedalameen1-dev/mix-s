@@ -3,7 +3,6 @@ import AdminUsersList from "@/components/AdminUsersList"
 import AdminInviteManager from "@/components/AdminInviteManager"
 import StatProgress from "@/components/StatProgress"
 import { Users, Target, Shield, TrendingUp, UserPlus, Activity, ArrowUpRight, LayoutGrid, Zap } from "lucide-react"
-import { motion } from "framer-motion"
 
 export const dynamic = 'force-dynamic'
 
@@ -104,14 +103,7 @@ export default async function AdminDashboard() {
                       <span>النمو المستهدف</span>
                       <span className="text-primary">{progress.toFixed(1)}%</span>
                    </div>
-                   <div className="h-4 bg-white/5 rounded-full overflow-hidden border border-white/5 p-1">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.min(progress, 100)}%` }}
-                        transition={{ duration: 1.5, ease: "circOut" }}
-                        className="h-full premium-gradient rounded-full shadow-[0_0_20px_rgba(var(--primary),0.4)]" 
-                      />
-                   </div>
+                   <StatProgress progress={progress} />
                 </div>
               </div>
               
