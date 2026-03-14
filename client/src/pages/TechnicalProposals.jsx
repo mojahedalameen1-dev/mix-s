@@ -4,6 +4,8 @@ import { FileText, Copy, Loader2, Sparkles, Zap, Download, FileDown, Plus, Trash
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../components/ToastProvider';
 import { API_URL } from '../utils/apiConfig';
+import { useStreamAnalysis } from '../hooks/useStreamAnalysis';
+import AnalysisLoader from '../components/AnalysisLoader';
 
 // Added for Markdown rendering
 import ReactMarkdown from 'react-markdown';
@@ -24,7 +26,7 @@ export default function TechnicalProposals() {
   const { addToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [exportingDocx, setExportingDocx] = useState(false);
-  const [exportingPdf, setExportingPdf] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -50,43 +52,12 @@ export default function TechnicalProposals() {
     adminFeatures: []
   });
 
+  const { progress, message, result, status, startStream } = useStreamAnalysis();
+
+  // Handle Stream Result
   useEffect(() => {
-    if (formData.price) {
-      const p = parseFloat(formData.price) || 0;
-      const v = p * 0.15;
-      setFormData(prev => ({ ...prev, vat: v.toFixed(2), total: (p + v).toFixed(2) }));
-    }
-  }, [formData.price]);
-
-  const textPrimary = isDark ? '#F0F4FF' : '#0A0F1E';
-  const textSecondary = isDark ? '#8B9CC8' : '#4A5570';
-  const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(79, 142, 247, 0.1)';
-  const cardBg = isDark ? 'rgba(30, 45, 74, 0.4)' : 'rgba(255, 255, 255, 0.5)';
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleGenerateAI = async () => {
-    if (!formData.meetingNotes.trim()) {
-      addToast('الرجاء إدخال تفاصيل الاجتماع أولاً', 'error');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch(API_URL('/api/proposals'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: formData.meetingNotes }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'حدث خطأ في الاتصال');
-
-      // Robust JSON Extraction
-      const fullText = data.proposal;
+    if (status === 'done' && result) {
+      const fullText = result.proposal || result;
       const jsonMatch = fullText.match(/```json\s*([\s\S]*?)\s*```/);
       
       let cleanProposal = fullText;
@@ -113,13 +84,36 @@ export default function TechnicalProposals() {
           adminFeatures: aiStructuredData.adminFeatures || []
         });
       }
-
       addToast('تم إنشاء العرض الفني بنجاح', 'success');
-    } catch (err) {
-      addToast(err.message || 'حدث خطأ أثناء معالجة الطلب', 'error');
-    } finally {
-      setLoading(false);
     }
+  }, [status, result, addToast]);
+
+  useEffect(() => {
+    if (formData.price) {
+      const p = parseFloat(formData.price) || 0;
+      const v = p * 0.15;
+      setFormData(prev => ({ ...prev, vat: v.toFixed(2), total: (p + v).toFixed(2) }));
+    }
+  }, [formData.price]);
+
+  const textPrimary = isDark ? '#F0F4FF' : '#0A0F1E';
+  const textSecondary = isDark ? '#8B9CC8' : '#4A5570';
+  const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(79, 142, 247, 0.1)';
+  const cardBg = isDark ? 'rgba(30, 45, 74, 0.4)' : 'rgba(255, 255, 255, 0.5)';
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleGenerateAI = () => {
+    if (!formData.meetingNotes.trim()) {
+      addToast('الرجاء إدخال تفاصيل الاجتماع أولاً', 'error');
+      return;
+    }
+
+    const query = new URLSearchParams({ text: formData.meetingNotes }).toString();
+    startStream(API_URL(`/api/proposals/stream?${query}`));
   };
 
 
@@ -129,7 +123,7 @@ export default function TechnicalProposals() {
       return;
     }
 
-    const setLoader = type === 'docx' ? setExportingDocx : setExportingPdf;
+    const setLoader = setExportingDocx;
     setLoader(true);
 
     try {
@@ -138,7 +132,7 @@ export default function TechnicalProposals() {
         ...structuredData
       };
 
-      const endpoint = type === 'docx' ? '/api/proposals/generate-docx' : '/api/proposals/generate-pdf';
+      const endpoint = '/api/proposals/generate-docx';
       const response = await fetch(API_URL(endpoint), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -154,11 +148,11 @@ export default function TechnicalProposals() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `proposal_${formData.clientName}_${Date.now()}.${type}`;
+      a.download = `proposal_${formData.clientName}_${Date.now()}.docx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
-      addToast(`تم تصدير ملف ${type.toUpperCase()} بنجاح`, 'success');
+      addToast(`تم تصدير ملف Word بنجاح`, 'success');
     } catch (err) {
       addToast(err.message, 'error');
     } finally {
@@ -229,9 +223,9 @@ export default function TechnicalProposals() {
             />
           </div>
 
-          <button onClick={handleGenerateAI} disabled={loading} className="btn-primary w-full p-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold flex items-center justify-center gap-2 hover:shadow-lg transition-all active:scale-95 disabled:opacity-50">
-            {loading ? <Loader2 size={20} className="animate-spin" /> : <Zap size={20} fill="currentColor" />}
-            {loading ? 'جاري التحليل والإنشاء...' : 'إتمام العرض الذكي'}
+          <button onClick={handleGenerateAI} disabled={status === 'loading'} className="btn-primary w-full p-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold flex items-center justify-center gap-2 hover:shadow-lg transition-all active:scale-95 disabled:opacity-50">
+            {status === 'loading' ? <Loader2 size={20} className="animate-spin" /> : <Zap size={20} fill="currentColor" />}
+            {status === 'loading' ? 'جاري التحليل والإنشاء...' : 'إتمام العرض الذكي'}
           </button>
 
           <hr style={{ borderColor: border }} />
@@ -265,29 +259,63 @@ export default function TechnicalProposals() {
         <motion.div variants={item} className="flex flex-col gap-6">
           <div className="glass-card p-6 flex-1 flex flex-col min-h-[600px]" style={{ background: cardBg, border: `1px solid ${border}`, borderRadius: '24px' }}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold" style={{ color: textPrimary }}>معاينة العرض</h2>
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => handleExport('docx')} disabled={exportingDocx || !formData.proposalText}
-                  className="px-4 py-2 rounded-lg bg-blue-500/10 text-blue-500 border border-blue-500/20 text-sm font-bold flex items-center gap-2 hover:bg-blue-500 hover:text-white transition-all disabled:opacity-30"
-                >
-                  {exportingDocx ? <Loader2 size={16} className="animate-spin" /> : <FileDown size={16} />} تصدير Word
-                </button>
-                <button 
-                  onClick={() => handleExport('pdf')} disabled={exportingPdf || !formData.proposalText}
-                  className="px-4 py-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 text-sm font-bold flex items-center gap-2 hover:bg-red-500 hover:text-white transition-all disabled:opacity-30"
-                >
-                  {exportingPdf ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} تصدير PDF
-                </button>
+              <div className="flex items-center gap-4">
+                <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
+                  <button 
+                    onClick={() => setEditMode(false)}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${!editMode ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    معاينة
+                  </button>
+                  <button 
+                    onClick={() => setEditMode(true)}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${editMode ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    تعديل
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => handleExport('docx')} disabled={exportingDocx || !formData.proposalText}
+                    className="px-4 py-2 rounded-lg bg-blue-500/10 text-blue-500 border border-blue-500/20 text-sm font-bold flex items-center gap-2 hover:bg-blue-500 hover:text-white transition-all disabled:opacity-30"
+                  >
+                    {exportingDocx ? <Loader2 size={16} className="animate-spin" /> : <FileDown size={16} />} تصدير Word
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="flex-1 overflow-auto bg-black/20 rounded-2xl p-6 border border-white/5 custom-scrollbar">
-              {!formData.proposalText ? (
+            <div className={`flex-1 overflow-auto rounded-2xl p-6 border custom-scrollbar transition-all duration-300 ${status === 'loading' ? 'bg-blue-500/5 border-blue-500/30' : 'bg-black/20 border-white/5'}`}>
+              {status === 'loading' ? (
+                <div className="h-full flex flex-col items-center justify-center p-8">
+                  <div className="relative mb-8">
+                    <Loader2 size={80} className="text-blue-500 animate-spin opacity-20" />
+                    <Sparkles size={40} className="absolute inset-0 m-auto text-blue-400 animate-pulse" />
+                  </div>
+                  <h3 className="text-2xl font-black text-white mb-4 animate-pulse">{message || 'جاري توليد العرض...'}</h3>
+                  <div className="w-full max-w-md h-3 bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/10">
+                    <motion.div 
+                      className="h-full rounded-full bg-gradient-to-r from-blue-600 to-purple-600"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progress}%` }}
+                      transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
+                    />
+                  </div>
+                  <span className="mt-4 text-4xl font-black text-blue-500">{progress}%</span>
+                </div>
+              ) : !formData.proposalText ? (
                 <div className="h-full flex flex-col items-center justify-center opacity-30 text-center">
                   <FileText size={80} className="mb-4" />
                   <p>البيانات المولدة ستظهر هنا بعد التحليل</p>
                 </div>
+              ) : editMode ? (
+                <textarea
+                  name="proposalText"
+                  value={formData.proposalText}
+                  onChange={handleInputChange}
+                  className="w-full h-full bg-transparent text-right text-gray-200 leading-relaxed outline-none resize-none font-mono text-sm"
+                  placeholder="يمكنك تعديل محتوى العرض هنا..."
+                />
               ) : (
                 <div id="proposal-content" className="prose prose-invert max-w-none text-right">
                   <div className="mb-8 p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">

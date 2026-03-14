@@ -22,7 +22,6 @@ console.log('🚀 Server starting initialization...');
 console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 console.log(`Vercel environment: ${process.env.VERCEL === '1' ? 'Yes' : 'No'}`);
 console.log(`Supabase URL configured: ${process.env.SUPABASE_URL ? 'Yes' : 'No'}`);
-console.log(`Gemini Key configured: ${process.env.GEMINI_API_KEY ? 'Yes' : 'No'}`);
 
 // Middleware
 app.use(cors());
@@ -62,9 +61,7 @@ app.get('/api/health', (req, res) => {
     isVercel: !!process.env.VERCEL,
     diagnostics: {
       supabaseUrlLoaded: !!process.env.SUPABASE_URL,
-      supabaseAnonKeyLoaded: !!process.env.SUPABASE_ANON_KEY,
-      geminiKeyLoaded: !!process.env.GEMINI_API_KEY,
-      convertApiLoaded: !!process.env.CONVERTAPI_SECRET
+      supabaseAnonKeyLoaded: !!process.env.SUPABASE_ANON_KEY
     }
   });
 });

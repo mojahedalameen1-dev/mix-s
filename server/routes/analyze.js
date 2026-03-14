@@ -5,7 +5,6 @@ const router = express.Router();
 const supabase = require('../supabase');
 
 router.post('/', async (req, res) => {
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   const { client_idea, client_name, sector, client_id } = req.body;
   
   if (!process.env.DEEPSEEK_API_KEY) {

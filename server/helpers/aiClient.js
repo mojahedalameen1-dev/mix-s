@@ -14,8 +14,8 @@ async function generateWithFallback({ prompt, systemInstruction, responseMimeTyp
     'deepseek-reasoner'
   ];
   
-  // Use DEEPSEEK_API_KEY if available, otherwise check GEMINI_API_KEY for legacy
-  const apiKey = process.env.DEEPSEEK_API_KEY || process.env.GEMINI_API_KEY;
+  // Use DEEPSEEK_API_KEY
+  const apiKey = process.env.DEEPSEEK_API_KEY;
 
   if (!apiKey) {
     throw new Error('AI_API_KEY_MISSING');
@@ -62,7 +62,7 @@ async function generateWithFallback({ prompt, systemInstruction, responseMimeTyp
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`
         },
-        timeout: 60000
+        timeout: 290000
       });
 
       const text = response.data?.choices?.[0]?.message?.content;

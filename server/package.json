@@ -7,11 +7,9 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.99.0",
     "axios": "^1.13.6",
     "better-sqlite3": "^12.6.2",
-    "convertapi": "^1.1.5",
     "cors": "^2.8.6",
     "docxtemplater": "^3.54.0",
     "dotenv": "^17.3.1",

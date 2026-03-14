@@ -9,10 +9,8 @@
     "build": "cd client && npm install && npm run build"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.99.0",
     "axios": "^1.13.6",
-    "convertapi": "^1.15.0",
     "cors": "^2.8.6",
     "docxtemplater": "^3.68.3",
     "dotenv": "^17.3.1",
