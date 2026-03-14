@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+import { cookies } from "next/headers"
 import { ShieldAlert, Clock, ArrowRight } from "lucide-react"
 import Link from "next/link"
 
@@ -64,10 +65,18 @@ export default async function InvitePage({ params }: { params: { token: string }
     .update({ usage_count: (invite.usage_count || 0) + 1 })
     .eq('id', invite.id)
 
-  console.log(`[Invite] Token valid, redirecting to login...`)
+  console.log(`[Invite] Token valid, setting cookie and redirecting to login...`)
+  
+  // Set a secure cookie with the invitation token
+  const cookieStore = cookies()
+  cookieStore.set('sb-invite-token', params.token, {
+    path: '/',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 10, // 10 minutes
+    sameSite: 'lax'
+  })
   
   // If token is valid, redirect to login
-  // We pass the token as a persistent indicator if needed, 
-  // but usually middleware handles the registration restriction based on tokens if desired.
   redirect('/login')
 }
