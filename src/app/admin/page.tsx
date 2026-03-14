@@ -1,8 +1,10 @@
 import { createClient } from "@/lib/supabase/server"
 import AdminUsersList from "@/components/AdminUsersList"
 import AdminInviteManager from "@/components/AdminInviteManager"
+import StatProgress from "@/components/StatProgress"
 import { Users, Target, Shield, TrendingUp, UserPlus, Activity, ArrowUpRight, LayoutGrid, Zap } from "lucide-react"
-import { motion } from "framer-motion"
+
+export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboard() {
   const supabase = createClient()
@@ -86,14 +88,7 @@ export default async function AdminDashboard() {
                     <span>تحقيق الأهداف</span>
                     <span>{progress.toFixed(1)}%</span>
                  </div>
-                 <div className="h-4 bg-white/5 rounded-full p-1 overflow-hidden">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${Math.min(progress, 100)}%` }}
-                      transition={{ duration: 1.5, ease: "easeOut" }}
-                      className="h-full bg-gradient-to-r from-primary to-blue-400 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.5)]" 
-                    />
-                 </div>
+                 <StatProgress progress={progress} />
               </div>
             </div>
             
