@@ -44,43 +44,51 @@ export default function AdminUsersList() {
           </tr>
         </thead>
         <tbody className="divide-y">
-          {users.map((user) => (
-            <tr key={user.id} className="hover:bg-muted/10 transition-colors">
-              <td className="p-6 flex items-center gap-4">
-                <img src={user.avatar_url || ""} className="w-12 h-12 rounded-xl object-cover" alt={user.full_name || "User Avatar"} />
-                <div>
-                  <p className="font-bold">{user.full_name}</p>
-                  <p className="text-xs text-muted-foreground">{user.email}</p>
-                </div>
-              </td>
-              <td className="p-6 text-sm">
-                {user.job_title || "غير محدد"}
-              </td>
-              <td className="p-6 font-bold text-primary">
-                {user.monthly_target?.toLocaleString() || 0} ر.س
-              </td>
-              <td className="p-6">
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  user.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
-                }`}>
-                  {user.status === 'active' ? 'نشط' : 'قيد الانتظار'}
-                </span>
-              </td>
-              <td className="p-6">
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => toggleStatus(user.id, user.status)}
-                    className="p-2 hover:bg-muted rounded-lg text-primary"
-                  >
-                    {user.status === 'pending' ? <UserCheck className="w-4 h-4" /> : <UserMinus className="w-4 h-4" />}
-                  </button>
-                  <button className="p-2 hover:bg-muted rounded-lg text-muted-foreground">
-                    <Edit3 className="w-4 h-4" />
-                  </button>
-                </div>
+          {users.length === 0 ? (
+            <tr>
+              <td colSpan={5} className="p-12 text-center text-muted-foreground italic">
+                لا يوجد مستخدمون حالياً. شارك رابط الدعوة مع فريقك ليتمكنوا من الانضمام.
               </td>
             </tr>
-          ))}
+          ) : (
+            users.map((user) => (
+              <tr key={user.id} className="hover:bg-muted/10 transition-colors">
+                <td className="p-6 flex items-center gap-4">
+                  <img src={user.avatar_url || ""} className="w-12 h-12 rounded-xl object-cover" alt={user.full_name || "User Avatar"} />
+                  <div>
+                    <p className="font-bold">{user.full_name}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                </td>
+                <td className="p-6 text-sm">
+                  {user.job_title || "غير محدد"}
+                </td>
+                <td className="p-6 font-bold text-primary">
+                  {user.monthly_target?.toLocaleString() || 0} ر.س
+                </td>
+                <td className="p-6">
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                    user.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
+                  }`}>
+                    {user.status === 'active' ? 'نشط' : 'قيد الانتظار'}
+                  </span>
+                </td>
+                <td className="p-6">
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => toggleStatus(user.id, user.status)}
+                      className="p-2 hover:bg-muted rounded-lg text-primary"
+                    >
+                      {user.status === 'pending' ? <UserCheck className="w-4 h-4" /> : <UserMinus className="w-4 h-4" />}
+                    </button>
+                    <button className="p-2 hover:bg-muted rounded-lg text-muted-foreground">
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </div>

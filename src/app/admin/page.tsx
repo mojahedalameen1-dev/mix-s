@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import AdminUsersList from "@/components/AdminUsersList"
-import { Users, Link as LinkIcon, Target } from "lucide-react"
+import AdminInviteManager from "@/components/AdminInviteManager"
+import { Users, Target } from "lucide-react"
 
 export default async function AdminDashboard() {
   const supabase = createClient()
@@ -10,8 +11,14 @@ export default async function AdminDashboard() {
     .select('*', { count: 'exact', head: true })
     .eq('status', 'pending')
 
-  const { data: stats } = await supabase
-    .rpc('get_team_stats') // I might need to create this RPC or just do client side
+  const { data: teamStats } = await supabase
+    .from('deals')
+    .select('expected_value, stage')
+    .in('stage', ['مغلقة ناجحة', 'won'])
+
+  const totalSales = teamStats?.reduce((acc, d) => acc + (Number(d.expected_value) || 0), 0) || 0
+  const globalTarget = 1200000 // 1.2M as in the design
+  const progress = (totalSales / globalTarget) * 100
 
   return (
     <div className="space-y-8">
@@ -25,27 +32,22 @@ export default async function AdminDashboard() {
           <Users className="w-10 h-10 opacity-50" />
           <h3 className="text-2xl font-bold">طلبات الانضمام</h3>
           <p className="text-5xl font-black">{pendingCount || 0}</p>
-          <button className="w-full py-3 bg-white/20 rounded-xl font-bold hover:bg-white/30 transition-all text-sm">
-            عرض الطلبات
-          </button>
+          <p className="text-sm opacity-80">بانتظار الموافقة</p>
         </div>
         
-        <div className="p-8 bg-card border rounded-3xl shadow-sm space-y-4">
-          <LinkIcon className="w-10 h-10 text-primary opacity-50" />
-          <h3 className="text-2xl font-bold">رابط الدعوة</h3>
-          <p className="text-xs text-muted-foreground break-all">mix-aa.vercel.app/invite/dynamic-token</p>
-          <button className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-bold transition-all text-sm">
-            نسخ الرابط
-          </button>
-        </div>
+        <AdminInviteManager />
 
         <div className="p-8 bg-card border rounded-3xl shadow-sm space-y-4">
           <Target className="w-10 h-10 text-primary opacity-50" />
           <h3 className="text-2xl font-bold">التارقت العام</h3>
-          <p className="text-4xl font-black">1.2M <span className="text-sm font-normal">ر.س</span></p>
+          <p className="text-4xl font-black">{ (totalSales / 1000000).toFixed(1) }M <span className="text-sm font-normal">ر.س</span></p>
           <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-            <div className="h-full bg-primary w-1/2" />
+            <div 
+              className="h-full bg-primary transition-all duration-1000" 
+              style={{ width: `${Math.min(progress, 100)}%` }}
+            />
           </div>
+          <p className="text-xs text-muted-foreground text-center">المستهدف: 1.2M ر.س</p>
         </div>
       </div>
 
