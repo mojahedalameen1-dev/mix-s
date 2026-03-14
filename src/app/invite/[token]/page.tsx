@@ -4,12 +4,14 @@ import { redirect } from "next/navigation"
 export default async function InvitePage({ params }: { params: { token: string } }) {
   const supabase = createClient()
   
-  // Verify invite token
+  // Verify invite token (must be active and not expired)
+  const now = new Date().toISOString()
   const { data: invite, error } = await supabase
     .from('invite_links')
     .select('*')
     .eq('token', params.token)
     .eq('is_active', true)
+    .or(`expires_at.is.null,expires_at.gt.${now}`)
     .single()
 
   if (error || !invite) {
