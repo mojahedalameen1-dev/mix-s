@@ -58,14 +58,15 @@ export async function updateSession(request: NextRequest) {
 
   // Protection logic
   const isAuthPage = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/invite')
-  const isDashboardPage = request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname === '/'
   const isAdminPage = request.nextUrl.pathname.startsWith('/admin')
 
-  if (!user && !isAuthPage && !isAdminPage) {
+  // If no user and not an auth page, redirect to login
+  if (!user && !isAuthPage) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (user && isAuthPage) {
+  // If user exists and trying to access login, redirect to home
+  if (user && request.nextUrl.pathname.startsWith('/login')) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
