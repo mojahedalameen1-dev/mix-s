@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { ShieldAlert, Clock, ArrowRight } from "lucide-react"
@@ -7,18 +7,19 @@ import Link from "next/link"
 export const dynamic = 'force-dynamic'
 
 export default async function InvitePage({ params }: { params: { token: string } }) {
-  const supabase = createClient()
+  const supabase = createAdminClient()
   const now = new Date().toISOString()
   
   console.log(`[Invite] Verifying token: ${params.token} at ${now}`)
 
   // Verify invite token with robust checks including single-use
+  // Using Admin Client bypasses RLS and handles schema checks more reliably
   const { data: invite, error } = await supabase
     .from('invite_links')
     .select('*')
     .eq('token', params.token)
     .eq('is_active', true)
-    .is('used_at', null) // Must not have been used
+    .is('used_at', null)
     .or(`expires_at.is.null,expires_at.gt.${now}`)
     .maybeSingle()
 
