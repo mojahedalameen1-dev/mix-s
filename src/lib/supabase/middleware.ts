@@ -8,6 +8,7 @@ export async function updateSession(request: NextRequest) {
     },
   })
 
+  // 1. Create Supabase Client
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -17,47 +18,26 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          })
+          request.cookies.set({ name, value, ...options })
           response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
+            request: { headers: request.headers },
           })
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          })
+          response.cookies.set({ name, value, ...options })
         },
         remove(name: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
+          request.cookies.set({ name, value: '', ...options })
           response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
+            request: { headers: request.headers },
           })
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
+          response.cookies.set({ name, value: '', ...options })
         },
       },
     }
   )
 
-  // Use getSession() instead of getUser() for middleware performance and reliability check
-  const { data: { session } } = await supabase.auth.getSession()
-  const user = session?.user
-
+  // 2. Get User
+  const { data: { user } } = await supabase.auth.getUser()
+  
   const pathname = request.nextUrl.pathname
   const isAuthPage = pathname.startsWith('/login') || 
                      pathname.startsWith('/invite') ||
@@ -65,29 +45,35 @@ export async function updateSession(request: NextRequest) {
                      pathname.startsWith('/auth/callback')
   const isAdminPage = pathname.startsWith('/admin')
 
-  console.log(`[Middleware] Path: ${pathname}, User: ${user?.id || 'none'}`)
+  // LOGGING (Visible in Vercel Logs)
+  console.log(`[Middleware] ${request.method} ${pathname} | User: ${user?.id || 'GUEST'}`)
 
-  // Direct redirect if no user session found for protected routes
+  // 3. Conditional Redirects
+  
+  // Only redirect GUESTS to /login if they aren't already on an auth page
   if (!user && !isAuthPage) {
-    console.log(`[Middleware] No session found for ${pathname}, redirecting to /login`)
-    return NextResponse.redirect(new URL('/login', request.url))
+    console.log(`[Middleware] REDIRECT -> /login (reason: unauthenticated)`)
+    // Allow the request to proceed if it's the root, to let app/page.tsx handle its own logic
+    if (pathname !== '/') {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
   }
 
-  // If session exists but on login page, go home
-  if (user && pathname.startsWith('/login')) {
+  // If logged in and at /login, go home
+  if (user && pathname === '/login') {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // Admin route protection
+  // 4. Admin Role Check
   if (user && isAdminPage) {
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile } = await supabase
       .from('profiles')
-      .select('role, status')
+      .select('role')
       .eq('id', user.id)
       .single()
 
-    if (profileError || !profile || profile.role !== 'admin') {
-      console.warn(`[Middleware] Access Denied for ${user.id} to ${pathname}: ${profileError?.message || 'Not Admin'}`)
+    if (!profile || profile.role !== 'admin') {
+      console.log(`[Middleware] REDIRECT -> / (reason: not admin, role: ${profile?.role})`)
       return NextResponse.redirect(new URL('/', request.url))
     }
   }
