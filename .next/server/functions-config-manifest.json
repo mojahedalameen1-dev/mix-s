@@ -1,1 +1,1 @@
-{"version":1,"functions":{"/invite/[token]":{},"/login":{},"/":{},"/admin":{}}}
+{"version":1,"functions":{"/login":{},"/invite/[token]":{},"/admin":{},"/":{},"/admin/bd/[id]":{}}}

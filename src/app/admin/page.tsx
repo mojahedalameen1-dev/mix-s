@@ -8,30 +8,40 @@ import { Users, Target, Shield, TrendingUp, UserPlus, Activity, ArrowUpRight, La
 export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboard() {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("تنبيه: مفتاح SUPABASE_SERVICE_ROLE_KEY غير موجود في متغيرات البيئة. يرجى إضافته في Vercel.")
+  }
+
   const supabase = createAdminClient()
   
   try {
     // 1. Business Developers Count
-    const { count: bdCount } = await supabase
+    const { count: bdCount, error: bdCountError } = await supabase
       .from('profiles')
       .select('id', { count: 'exact', head: true })
       .eq('role', 'business_developer')
       .eq('status', 'active')
+    
+    if (bdCountError) console.error('Error fetching BD count:', bdCountError)
 
     // 2. Total Clients Count
-    const { count: clientsCount } = await supabase
+    const { count: clientsCount, error: clientsCountError } = await supabase
       .from('clients')
       .select('id', { count: 'exact', head: true })
+    
+    if (clientsCountError) console.error('Error fetching clients count:', clientsCountError)
 
     // 3. Sales & Revenue this month
     const startOfMonth = new Date()
     startOfMonth.setDate(1)
     startOfMonth.setHours(0, 0, 0, 0)
     
-    const { data: monthDeals } = await supabase
+    const { data: monthDeals, error: monthDealsError } = await supabase
       .from('deals')
       .select('expected_value, stage')
       .gte('created_at', startOfMonth.toISOString())
+
+    if (monthDealsError) console.error('Error fetching month deals:', monthDealsError)
 
     const monthSalesCount = monthDeals?.length || 0
     const monthRevenue = monthDeals
@@ -39,40 +49,50 @@ export default async function AdminDashboard() {
       .reduce((acc, d) => acc + (Number(d.expected_value) || 0), 0) || 0
 
     // Global stats (all time)
-    const { data: allWonDeals } = await supabase
+    const { data: allWonDeals, error: allWonDealsError } = await supabase
       .from('deals')
       .select('expected_value')
       .in('stage', ['مغلقة ناجحة', 'won'])
+    
+    if (allWonDealsError) console.error('Error fetching all won deals:', allWonDealsError)
     
     const totalSales = allWonDeals?.reduce((acc, d) => acc + (Number(d.expected_value) || 0), 0) || 0
     const globalTarget = 1200000 
     const progress = (totalSales / globalTarget) * 100
 
     // 4. Fetch initial child component data
-    const [{ data: initialInvites }, { data: bds }, { data: initialActivities }] = await Promise.all([
+    const [invitesRes, bdsRes, activitiesRes] = await Promise.all([
       supabase.from('invite_links').select('*').order('created_at', { ascending: false }),
       supabase.from('profiles').select('*').eq('role', 'business_developer').order('created_at', { ascending: false }),
       supabase.from('activity_logs').select('*, profiles:user_id(full_name)').order('created_at', { ascending: false }).limit(50)
     ])
 
+    const initialInvites = invitesRes.data || []
+    const bds = bdsRes.data || []
+    const initialActivities = activitiesRes.data || []
+
+    if (invitesRes.error) console.error('Error fetching initial invites:', invitesRes.error)
+    if (bdsRes.error) console.error('Error fetching business developers:', bdsRes.error)
+    if (activitiesRes.error) console.error('Error fetching activities:', activitiesRes.error)
+
     // Calculate stats for initialUsers
-    const initialUsers = bds ? await Promise.all(bds.map(async (bd) => {
-      const [{ count: clientCount }, { data: deals }, { data: lastLog }] = await Promise.all([
+    const initialUsers = bds.length > 0 ? await Promise.all(bds.map(async (bd) => {
+      const [cRes, dRes, lRes] = await Promise.all([
         supabase.from('clients').select('id', { count: 'exact', head: true }).eq('engineer_id', bd.id),
         supabase.from('deals').select('expected_value, stage').eq('engineer_id', bd.id),
         supabase.from('activity_logs').select('created_at').eq('user_id', bd.id).order('created_at', { ascending: false }).limit(1).maybeSingle()
       ])
 
-      const revenue = deals
-        ?.filter(d => ['مغلقة ناجحة', 'won'].includes(d.stage || ''))
-        .reduce((acc, d) => acc + (Number(d.expected_value) || 0), 0) || 0
+      const revenue = dRes.data
+        ?.filter((d: any) => ['مغلقة ناجحة', 'won'].includes(d.stage || ''))
+        .reduce((acc: number, d: any) => acc + (Number(d.expected_value) || 0), 0) || 0
 
       return {
         ...bd,
-        clients_count: clientCount || 0,
-        deals_count: deals?.length || 0,
+        clients_count: cRes.count || 0,
+        deals_count: dRes.data?.length || 0,
         total_revenue: revenue,
-        last_activity: lastLog?.created_at
+        last_activity: lRes.data?.created_at
       }
     })) : []
 

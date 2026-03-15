@@ -1,10 +1,15 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
+  "/api/admin/invite/route": "app/api/admin/invite/route.js",
+  "/api/admin-auth/route": "app/api/admin-auth/route.js",
   "/auth/callback/route": "app/auth/callback/route.js",
-  "/deals/page": "app/deals/page.js",
   "/clients/page": "app/clients/page.js",
-  "/login/page": "app/login/page.js",
-  "/page": "app/page.js",
+  "/deals/page": "app/deals/page.js",
+  "/complete-profile/page": "app/complete-profile/page.js",
   "/invite/[token]/page": "app/invite/[token]/page.js",
+  "/page": "app/page.js",
+  "/login/page": "app/login/page.js",
+  "/admin/bd/[id]/page": "app/admin/bd/[id]/page.js",
+  "/admin/login/page": "app/admin/login/page.js",
   "/admin/page": "app/admin/page.js"
 }
