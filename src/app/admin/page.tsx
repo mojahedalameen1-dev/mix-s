@@ -19,7 +19,7 @@ export default async function AdminDashboard() {
     const { count: bdCount, error: bdCountError } = await supabase
       .from('profiles')
       .select('id', { count: 'exact', head: true })
-      .eq('role', 'business_developer')
+      .in('role', ['admin', 'business_developer'])
       .eq('status', 'active')
     
     if (bdCountError) console.error('Error fetching BD count:', bdCountError)
@@ -63,7 +63,7 @@ export default async function AdminDashboard() {
     // 4. Fetch initial child component data
     const [invitesRes, bdsRes, activitiesRes] = await Promise.all([
       supabase.from('invite_links').select('*').order('created_at', { ascending: false }),
-      supabase.from('profiles').select('*').eq('role', 'business_developer').order('created_at', { ascending: false }),
+      supabase.from('profiles').select('*').in('role', ['admin', 'business_developer']).order('created_at', { ascending: false }),
       supabase.from('activity_logs').select('*, profiles:user_id(full_name)').order('created_at', { ascending: false }).limit(50)
     ])
 

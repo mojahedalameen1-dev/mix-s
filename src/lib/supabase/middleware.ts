@@ -28,16 +28,44 @@ export async function updateSession(request: NextRequest) {
 
     // ── ADMIN ROUTES ──────────────────
     if (pathname.startsWith('/admin')) {
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            get(name: string) { return request.cookies.get(name)?.value },
+            set(name: string, value: string, options: CookieOptions) {
+              request.cookies.set({ name, value, ...options })
+            },
+            remove(name: string, options: CookieOptions) {
+              request.cookies.set({ name, value: '', ...options })
+            },
+          },
+        }
+      )
+
+      const { data: { user } } = await supabase.auth.getUser()
+      let userIsAdmin = false
+      
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+        userIsAdmin = profile?.role === 'admin'
+      }
+
+      const hasAdminCookie = isValidAdminSession(adminCookie)
+
       if (pathname === '/admin/login') {
-        if (isValidAdminSession(adminCookie)) {
+        if (hasAdminCookie || userIsAdmin) {
           return NextResponse.redirect(new URL('/admin', request.url))
         }
         return response
       }
 
-      if (!isValidAdminSession(adminCookie)) {
-        // Redirect to /unauthorized instead of login for better UX if already logged in as BD, 
-        // but for simplicity we'll stick to admin/login for now unless we know they are a BD
+      if (!hasAdminCookie && !userIsAdmin) {
         return NextResponse.redirect(new URL('/admin/login', request.url))
       }
 
@@ -112,7 +140,7 @@ export async function updateSession(request: NextRequest) {
     return response
   } catch (error) {
     console.error('Middleware Error:', error)
-    // Return Next() to avoid 500 error if middleware fails
-    return NextResponse.next()
+    // Redirect to login on failure to ensure security
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 }

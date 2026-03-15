@@ -7,16 +7,14 @@ export function LoginButton({ token }: { token: string }) {
   const supabase = createClient()
 
   const handleLogin = async () => {
+    // Store token in cookie for 10 minutes to survive OAuth redirect
+    document.cookie = `invite_token=${token}; path=/; max-age=600; SameSite=Lax`
+
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?invite=${token}`,
-        queryParams: {
-          state: token,
-          access_type: 'offline',
-          prompt: 'consent',
-        }
-      }
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
     })
   }
 

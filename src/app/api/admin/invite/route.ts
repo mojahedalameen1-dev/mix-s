@@ -18,8 +18,8 @@ export async function POST(request: NextRequest) {
 
     const supabase = createAdminClient()
 
-    // 2. Generate Token
-    const token = Math.random().toString(36).substring(2, 11) + '-' + Math.random().toString(36).substring(2, 6)
+    // 2. Generate Secure Token
+    const token = crypto.randomUUID()
 
     // 3. Insert Invite Link
     const { data: invite, error } = await supabase

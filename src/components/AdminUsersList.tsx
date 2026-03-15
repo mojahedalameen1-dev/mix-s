@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Profile } from "@/types/database"
-import { Search, ChevronDown, User, Mail, Calendar, Briefcase, TrendingUp, Users, ArrowUpRight, CheckCircle2, Clock, MoreVertical, ExternalLink } from "lucide-react"
+import { Search, ChevronDown, User, Mail, Calendar, Briefcase, TrendingUp, Users, ArrowUpRight, CheckCircle2, Clock, MoreVertical, ExternalLink, Trash2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 
@@ -27,7 +27,7 @@ export default function AdminUsersList({ initialUsers = [] }: { initialUsers?: B
       const { data: bds, error: bdError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('role', 'business_developer')
+        .in('role', ['admin', 'business_developer'])
         .order('created_at', { ascending: false })
       
       if (bdError) throw bdError
@@ -80,6 +80,19 @@ export default function AdminUsersList({ initialUsers = [] }: { initialUsers?: B
       fetchUsers()
     }
   }, [fetchUsers, initialUsers.length])
+
+  const deleteUser = async (id: string, name: string | null) => {
+    if (!confirm(`هل أنت متأكد من حذف المطور ${name || ''}؟ هذا الإجراء سيحذف كافة بياناته ولا يمكن التراجع عنه.`)) return
+    
+    try {
+      const { error } = await supabase.from('profiles').delete().eq('id', id)
+      if (error) throw error
+      setUsers(users.filter(u => u.id !== id))
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      alert('حدث خطأ أثناء حذف المستخدم. قد يكون مرتبطاً ببيانات أخرى.')
+    }
+  }
 
   const filteredUsers = useMemo(() => {
     return users
@@ -214,12 +227,22 @@ export default function AdminUsersList({ initialUsers = [] }: { initialUsers?: B
                     </td>
 
                     <td className="bg-white border-y border-l border-slate-100 rounded-l-[32px] p-4 pl-8 shadow-sm">
-                       <Link 
-                          href={`/admin/bd/${user.id}`}
-                          className="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center hover:bg-primary hover:text-white transition-all opacity-0 group-hover:opacity-100 hover:scale-110 shadow-lg"
-                       >
-                          <ArrowUpRight className="w-5 h-5" />
-                       </Link>
+                       <div className="flex items-center gap-2">
+                          <Link 
+                             href={`/admin/bd/${user.id}`}
+                             className="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center hover:bg-primary hover:text-white transition-all opacity-0 group-hover:opacity-100 hover:scale-110 shadow-lg"
+                             title="عرض التفاصيل"
+                          >
+                             <ArrowUpRight className="w-5 h-5" />
+                          </Link>
+                          <button 
+                             onClick={() => deleteUser(user.id, user.full_name)}
+                             className="w-10 h-10 bg-white border border-slate-100 text-slate-300 rounded-xl flex items-center justify-center hover:bg-red-500 hover:text-white hover:border-red-500 transition-all opacity-0 group-hover:opacity-100 hover:scale-110 shadow-md"
+                             title="حذف المطور"
+                          >
+                             <Trash2 className="w-4 h-4" />
+                          </button>
+                       </div>
                     </td>
                   </motion.tr>
                 ))
