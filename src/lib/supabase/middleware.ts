@@ -1,14 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-
-// Admin session validation — matches the cookie set by /api/admin-auth
-const ADMIN_SESSION_COOKIE = 'mix_admin_session'
-const ADMIN_SESSION_VALUE = 'authorized_' + Buffer.from('admin' + 'm58858').toString('base64')
-
-function isValidAdminSession(request: NextRequest): boolean {
-  const cookie = request.cookies.get(ADMIN_SESSION_COOKIE)?.value
-  return cookie === ADMIN_SESSION_VALUE
-}
+import { isValidAdminSession, ADMIN_SESSION_COOKIE } from '@/lib/admin-auth'
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({
@@ -16,20 +8,21 @@ export async function updateSession(request: NextRequest) {
   })
 
   const pathname = request.nextUrl.pathname
+  const adminCookie = request.cookies.get(ADMIN_SESSION_COOKIE)?.value
 
   // ── ADMIN ROUTES — Use custom cookie (no Supabase needed) ──────────────────
   if (pathname.startsWith('/admin')) {
     // /admin/login is public
     if (pathname === '/admin/login') {
       // If already logged in as admin, redirect to dashboard
-      if (isValidAdminSession(request)) {
+      if (isValidAdminSession(adminCookie)) {
         return NextResponse.redirect(new URL('/admin', request.url))
       }
       return response
     }
 
     // All other /admin/* routes require admin session
-    if (!isValidAdminSession(request)) {
+    if (!isValidAdminSession(adminCookie)) {
       return NextResponse.redirect(new URL('/admin/login', request.url))
     }
 
