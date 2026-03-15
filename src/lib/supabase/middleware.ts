@@ -75,6 +75,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Admin route protection
+  // Admin route protection
   if (user && isAdminPage) {
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -82,17 +83,15 @@ export async function updateSession(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    console.log(`[Middleware] Admin check for user ${user.id}: role=${profile?.role}, error=${profileError?.message || 'none'}`)
-
-    // If we can't read the profile (RLS issue) or user is not admin, redirect
-    if (!profile || profile.role !== 'admin') {
+    if (profileError || !profile || profile.role !== 'admin') {
+      console.warn(`[Middleware] Admin access denied for ${user.id}: ${profileError?.message || 'Not an admin'}`)
       return NextResponse.redirect(new URL('/', request.url))
     }
   }
 
   // Final check: If active user has no full_name, redirect to /complete-profile
   if (user && !isAuthPage && pathname !== '/') {
-     const { data: profile } = await supabase
+    const { data: profile } = await supabase
       .from('profiles')
       .select('full_name, status')
       .eq('id', user.id)

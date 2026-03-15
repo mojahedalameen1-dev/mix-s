@@ -21,8 +21,15 @@ export default async function DashboardPage() {
     .single()
 
   if (!profile) {
-    // Should not happen due to trigger, but safety first
-    redirect('/login')
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4" dir="rtl">
+        <div className="text-center space-y-4 p-8 border rounded-2xl max-w-md">
+          <h1 className="text-2xl font-bold text-destructive">خطأ في تهيئة الحساب</h1>
+          <p>لم يتم العثور على ملف شخصي لهذا الحساب. يرجى التواصل مع المسؤول.</p>
+          <p className="text-xs text-muted-foreground font-mono">User ID: {user.id}</p>
+        </div>
+      </div>
+    )
   }
 
   if (profile.status === 'pending') {
