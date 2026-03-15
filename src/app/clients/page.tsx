@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
+import { logActivity } from "@/lib/activity"
 import { Client } from "@/types/database"
 import { UserPlus, Search, Phone, Building2, MoreVertical } from "lucide-react"
 import Sidebar from "@/components/Sidebar"
@@ -78,6 +79,15 @@ export default function ClientsPage() {
           setClients([data[0], ...clients])
           setIsAddModalOpen(false)
           setNewClient({ client_name: "", phone: "", email: "", client_type: "", city: "" })
+          
+          // Log activity
+          await logActivity(
+            supabase, 
+            user.id, 
+            'client_created', 
+            `تمت إضافة عميل جديد: ${newClient.client_name}`,
+            { entityType: 'client', entityId: String(data[0].id) }
+          )
         }
       }
     } catch (error) {

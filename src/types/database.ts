@@ -1,15 +1,42 @@
 export type Profile = {
   id: string
   full_name: string | null
+  first_name?: string | null
+  last_name?: string | null
   email: string | null
   avatar_url: string | null
   job_title: string | null
   monthly_target: number
-  role: 'engineer' | 'admin'
+  role: 'engineer' | 'admin' | 'business_developer'
   status: 'pending' | 'active' | 'deactivated'
   transferred_to: string | null
   theme_preference: 'light' | 'dark'
   has_seen_welcome: boolean
+  invited_by: string | null
+  last_login_at: string | null
+  created_at: string
+}
+
+export type ActivityLog = {
+  id: string
+  user_id: string
+  action_type: 'login' | 'client_created' | 'client_updated' | 'sale_created' | 'sale_updated' | 'meeting_created' | 'profile_completed'
+  description: string | null
+  entity_type: string | null
+  entity_id: string | null
+  metadata: any | null
+  created_at: string
+}
+
+export type InviteLink = {
+  id: string
+  token: string
+  label: string
+  expires_at: string | null
+  is_active: boolean
+  usage_count: number
+  used_at: string | null
+  created_by: string
   created_at: string
 }
 

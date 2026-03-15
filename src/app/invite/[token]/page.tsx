@@ -12,12 +12,13 @@ export default async function InvitePage({ params }: { params: { token: string }
   
   console.log(`[Invite] Verifying token: ${params.token} at ${now}`)
 
-  // Verify invite token with robust checks
+  // Verify invite token with robust checks including single-use
   const { data: invite, error } = await supabase
     .from('invite_links')
     .select('*')
     .eq('token', params.token)
     .eq('is_active', true)
+    .is('used_at', null) // Must not have been used
     .or(`expires_at.is.null,expires_at.gt.${now}`)
     .maybeSingle()
 
@@ -46,7 +47,9 @@ export default async function InvitePage({ params }: { params: { token: string }
           </div>
           <div className="space-y-2">
             <h1 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter">الرابط غير صالح</h1>
-            <p className="text-zinc-500 font-bold leading-relaxed">يبدو أن رابط الدعوة هذا قد انتهى أو أنك أدخلت رمزاً غير صحيح.</p>
+            <p className="text-zinc-500 font-bold leading-relaxed tracking-tight">
+              يبدو أن رابط الدعوة هذا قد انتهى، أو استُخدم بالفعل، أو أن الرمز غير صحيح.
+            </p>
           </div>
           <div className="pt-4">
              <Link href="/login" className="flex items-center justify-center gap-3 w-full py-5 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl font-black transition-all hover:opacity-90">

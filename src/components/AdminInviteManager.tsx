@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
+import { logActivity } from "@/lib/activity"
 import { Copy, Check, Trash2, Clock, Plus, ExternalLink, ShieldCheck, Mail, Send, Calendar, Users } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -80,6 +81,15 @@ export default function AdminInviteManager() {
 
       setNewLinkLabel("")
       fetchLinks()
+      
+      // Log activity
+      await logActivity(
+        supabase, 
+        user.id, 
+        'invite_created', 
+        `تم إنشاء رابط دعوة جديد: ${newLinkLabel}`,
+        { metadata: { label: newLinkLabel, expires: expiration } }
+      )
     } catch (error: any) {
       console.error('Error creating link:', error)
       setErrorStatus(error.message || "حدث خطأ غير متوقع")

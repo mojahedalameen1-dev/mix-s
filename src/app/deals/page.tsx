@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
+import { logActivity } from "@/lib/activity"
 import { Deal } from "@/types/database"
 import { Plus, Calendar, Tag, ArrowRightLeft, Briefcase } from "lucide-react"
 import Sidebar from "@/components/Sidebar"
@@ -92,6 +93,15 @@ export default function DealsPage() {
           setDeals([data[0], ...deals])
           setIsAddModalOpen(false)
           setNewDeal({ deal_name: "", expected_value: 0, stage: "new", client_id: 0 })
+          
+          // Log activity
+          await logActivity(
+            supabase, 
+            user.id, 
+            'sale_created', 
+            `تمت إضافة صفقة جديدة: ${newDeal.deal_name} بقيمة ${newDeal.expected_value} ر.س`,
+            { entityType: 'deal', entityId: String(data[0].id) }
+          )
         }
       }
     } catch (error) {

@@ -57,7 +57,9 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   // Protection logic
-  const isAuthPage = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/invite')
+  const isAuthPage = request.nextUrl.pathname.startsWith('/login') || 
+                     request.nextUrl.pathname.startsWith('/invite') ||
+                     request.nextUrl.pathname.startsWith('/complete-profile')
   const isAdminPage = request.nextUrl.pathname.startsWith('/admin')
 
   // If no user and not an auth page, redirect to login
@@ -73,12 +75,25 @@ export async function updateSession(request: NextRequest) {
   if (user && isAdminPage) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, full_name, status')
       .eq('id', user.id)
       .single()
 
     if (profile?.role !== 'admin') {
       return NextResponse.redirect(new URL('/', request.url))
+    }
+  }
+
+  // Final check: If active user has no full_name, redirect to /complete-profile (except on auth pages)
+  if (user && !isAuthPage && request.nextUrl.pathname !== '/') {
+     const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name, status')
+      .eq('id', user.id)
+      .single()
+    
+    if (profile?.status === 'active' && !profile?.full_name && request.nextUrl.pathname !== '/complete-profile') {
+      return NextResponse.redirect(new URL('/complete-profile', request.url))
     }
   }
 

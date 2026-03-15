@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { logActivity } from '@/lib/activity'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -13,10 +14,15 @@ export async function GET(request: Request) {
     
     if (!authError && session) {
       const user = session.user
-      const cookieStore = request.headers.get('cookie')
-      const inviteToken = request.headers.get('cookie')?.split('; ').find(row => row.startsWith('sb-invite-token='))?.split('=')[1]
+      const supabase = createClient()
+      
+      // Update last login timestamp for all users
+      await supabase
+        .from('profiles')
+        .update({ last_login_at: new Date().toISOString() })
+        .eq('id', user.id)
 
-      const response = NextResponse.redirect(`${origin}${next}`)
+      const inviteToken = request.headers.get('cookie')?.split('; ').find(row => row.startsWith('sb-invite-token='))?.split('=')[1]
 
       if (inviteToken) {
         console.log(`[AuthCallback] Found invite token: ${inviteToken}, checking validity...`)
@@ -32,19 +38,39 @@ export async function GET(request: Request) {
 
         if (invite) {
           console.log(`[AuthCallback] Token valid, auto-activating user: ${user.id}`)
-          // We use a small delay or retry because the trigger handle_new_user might still be processing
-          await new Promise(resolve => setTimeout(resolve, 500)) 
           
+          // 1. Activate user and set who invited them
           await supabase
             .from('profiles')
-            .update({ status: 'active' })
+            .update({ 
+               status: 'active',
+               invited_by: invite.created_by
+            })
             .eq('id', user.id)
-        }
 
-        // Clean up the cookie
-        response.cookies.set('sb-invite-token', '', { path: '/', maxAge: 0 })
+          // 2. Mark invite as used (single-use)
+          await supabase
+            .from('invite_links')
+            .update({ 
+              used_at: new Date().toISOString(),
+              usage_count: (invite.usage_count || 0) + 1 
+            })
+            .eq('id', invite.id)
+
+          // 3. Log activity
+          await logActivity(supabase, user.id, 'login', 'تسجيل دخول أول مرة (عبر دعوة)')
+          
+          // Clean up the cookie
+          const response = NextResponse.redirect(`${origin}/complete-profile`)
+          response.cookies.set('sb-invite-token', '', { path: '/', maxAge: 0 })
+          return response
+        }
       }
 
+      // Log regular login
+      await logActivity(supabase, user.id, 'login', 'تسجيل دخول للنظام')
+
+      const response = NextResponse.redirect(`${origin}${next}`)
       return response
     }
   }
