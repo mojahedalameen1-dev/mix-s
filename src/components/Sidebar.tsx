@@ -41,9 +41,9 @@ export default function Sidebar({ role }: { role: string }) {
       
       <div className="p-10 mb-8">
         <Link href="/" className="group">
-          <h1 className="text-3xl font-black text-slate-900 tracking-tighter leading-none italic uppercase flex items-center gap-2">
-            <span className="bg-primary px-2 py-1 rounded-lg text-white group-hover:rotate-12 transition-transform">Mix</span>
-            <span className="text-primary/80">Sales</span>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tighter leading-none italic uppercase flex items-center gap-2 font-arabic">
+            <span className="bg-primary px-2 py-1 rounded-lg text-white group-hover:rotate-12 transition-transform">ميكس</span>
+            <span className="text-primary/80">مبيعات</span>
           </h1>
         </Link>
       </div>

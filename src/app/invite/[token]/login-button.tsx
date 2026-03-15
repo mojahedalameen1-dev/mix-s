@@ -10,7 +10,7 @@ export function LoginButton({ token }: { token: string }) {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?invite=${token}`,
         queryParams: {
           state: token,
           access_type: 'offline',

@@ -5,7 +5,7 @@ import { logActivity } from '@/lib/activity'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const inviteToken = searchParams.get('state')
+  const inviteToken = searchParams.get('invite') ?? searchParams.get('state')
   const next = searchParams.get('next') ?? '/'
 
   if (code) {

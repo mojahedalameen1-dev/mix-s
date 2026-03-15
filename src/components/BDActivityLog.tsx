@@ -19,6 +19,19 @@ type ActivityLog = {
   metadata: any
 }
 
+const METADATA_LABELS: Record<string, string> = {
+  client_name: 'اسم العميل',
+  engineer_id: 'معرف المطور',
+  amount: 'المبلغ',
+  stage: 'المرحلة',
+  type: 'النوع',
+  subject: 'الموضوع',
+  deal_name: 'اسم الصفقة',
+  status: 'الحالة',
+  email: 'البريد',
+  phone: 'الجوال'
+}
+
 export default function BDActivityLog({ userId }: BDActivityLogProps) {
   const [activities, setActivities] = useState<ActivityLog[]>([])
   const [loading, setLoading] = useState(true)
@@ -70,7 +83,7 @@ export default function BDActivityLog({ userId }: BDActivityLogProps) {
   }
 
   if (loading) return (
-    <div className="space-y-4">
+    <div className="space-y-4" dir="rtl">
       {[...Array(5)].map((_, i) => (
         <div key={i} className="h-16 bg-slate-50 rounded-2xl animate-pulse" />
       ))}
@@ -102,14 +115,14 @@ export default function BDActivityLog({ userId }: BDActivityLogProps) {
                   </span>
                 </div>
                 <div className="bg-slate-50/50 p-4 rounded-3xl border border-slate-100/50 hover:bg-white hover:border-slate-200 transition-all">
-                  <p className="text-sm font-bold text-slate-700 leading-relaxed">
+                  <p className="text-sm font-bold text-slate-700 leading-relaxed italic">
                     {activity.description}
                   </p>
                   {activity.metadata && Object.keys(activity.metadata).length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {Object.entries(activity.metadata).map(([key, value]) => (
                         <span key={key} className="text-[9px] font-black bg-white px-2 py-0.5 rounded border border-slate-100 text-slate-400 uppercase">
-                          {key}: {String(value)}
+                          {METADATA_LABELS[key] || key}: {String(value)}
                         </span>
                       ))}
                     </div>
@@ -122,7 +135,7 @@ export default function BDActivityLog({ userId }: BDActivityLogProps) {
       ) : (
         <div className="py-20 text-center">
           <Activity className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-          <p className="text-sm font-bold text-slate-400 italic">لا يوجد نشاط مسجل لهذا المطور</p>
+          <p className="text-sm font-black text-slate-400 italic">لا يوجد نشاط مسجل لهذا المطور</p>
         </div>
       )}
     </div>

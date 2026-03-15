@@ -33,7 +33,7 @@ export default function AdminUsersList({ initialUsers = [] }: { initialUsers?: B
       if (bdError) throw bdError
       if (!bds) return
 
-      // Fetch stats for each BD (In production, consider a server-side view or function for this)
+      // Fetch stats for each BD
       const usersWithStats = await Promise.all(bds.map(async (bd) => {
         const { count: clientCount } = await supabase
           .from('clients')
@@ -107,7 +107,7 @@ export default function AdminUsersList({ initialUsers = [] }: { initialUsers?: B
       {/* Controls */}
       <div className="flex flex-col md:flex-row gap-6 p-4">
         <div className="relative flex-1 group">
-          <Search className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-primary transition-colors" />
+          <Search className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within/input:text-primary transition-colors" />
           <input 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -164,46 +164,46 @@ export default function AdminUsersList({ initialUsers = [] }: { initialUsers?: B
                     exit={{ opacity: 0, scale: 0.95 }}
                     className="group"
                   >
-                    <td className="bg-white border-y border-r border-slate-100 rounded-r-[32px] p-4 pr-8 transition-all group-hover:border-primary/20">
+                    <td className="bg-white border-y border-r border-slate-100 rounded-r-[32px] p-4 pr-8 transition-all group-hover:border-primary/20 shadow-sm">
                        <div className="flex items-center gap-5">
-                          <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 font-black text-xl text-primary group-hover:scale-105 transition-transform">
-                             {user.full_name?.[0] || 'U'}
+                          <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20 font-black text-xl text-primary group-hover:scale-105 transition-transform">
+                             {user.full_name?.[0] || 'م'}
                           </div>
                           <div>
                              <h4 className="text-base font-black text-slate-900 group-hover:text-primary transition-colors">{user.full_name}</h4>
-                             <p className="text-[11px] font-bold text-slate-400">{user.email}</p>
+                             <p className="text-[11px] font-bold text-slate-400 uppercase">{user.email}</p>
                           </div>
                        </div>
                     </td>
 
-                    <td className="bg-white border-y border-slate-100 p-4 text-center">
+                    <td className="bg-white border-y border-slate-100 p-4 text-center shadow-sm">
                        <div className="inline-flex flex-col items-center">
                           <span className="text-lg font-black text-slate-900">{user.clients_count}</span>
-                          <span className="text-[9px] font-black text-slate-300 uppercase italic">Clients</span>
+                          <span className="text-[9px] font-black text-slate-300 uppercase italic">عملاء</span>
                        </div>
                     </td>
 
-                    <td className="bg-white border-y border-slate-100 p-4 text-center">
+                    <td className="bg-white border-y border-slate-100 p-4 text-center shadow-sm">
                        <div className="inline-flex flex-col items-center">
                           <span className="text-lg font-black text-slate-900">{user.deals_count}</span>
-                          <span className="text-[9px] font-black text-slate-300 uppercase italic">Deals</span>
+                          <span className="text-[9px] font-black text-slate-300 uppercase italic">صفقات</span>
                        </div>
                     </td>
 
-                    <td className="bg-white border-y border-slate-100 p-4 text-center">
+                    <td className="bg-white border-y border-slate-100 p-4 text-center shadow-sm">
                        <div className="inline-flex py-1.5 px-4 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100">
                           <span className="text-sm font-black">{Number(user.total_revenue).toLocaleString()}</span>
-                          <span className="text-[8px] mr-1 self-end font-bold opacity-60">SAR</span>
+                          <span className="text-[8px] mr-1 self-end font-bold opacity-60">ر.س</span>
                        </div>
                     </td>
 
-                    <td className="bg-white border-y border-slate-100 p-4 text-center">
+                    <td className="bg-white border-y border-slate-100 p-4 text-center shadow-sm">
                        <span className="text-[10px] font-bold text-slate-400">
-                          {user.last_activity ? new Date(user.last_activity).toLocaleDateString() : '—'}
+                          {user.last_activity ? new Date(user.last_activity).toLocaleDateString("ar-SA") : '—'}
                        </span>
                     </td>
 
-                    <td className="bg-white border-y border-slate-100 p-4 text-center">
+                    <td className="bg-white border-y border-slate-100 p-4 text-center shadow-sm">
                         <div className={`inline-flex px-3 py-1 rounded-full text-[9px] font-black border ${
                            user.status === 'active' 
                            ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
@@ -213,7 +213,7 @@ export default function AdminUsersList({ initialUsers = [] }: { initialUsers?: B
                         </div>
                     </td>
 
-                    <td className="bg-white border-y border-l border-slate-100 rounded-l-[32px] p-4 pl-8">
+                    <td className="bg-white border-y border-l border-slate-100 rounded-l-[32px] p-4 pl-8 shadow-sm">
                        <Link 
                           href={`/admin/bd/${user.id}`}
                           className="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center hover:bg-primary hover:text-white transition-all opacity-0 group-hover:opacity-100 hover:scale-110 shadow-lg"

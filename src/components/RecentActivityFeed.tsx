@@ -104,7 +104,7 @@ export default function RecentActivityFeed({ initialActivities = [] }: { initial
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4" dir="rtl">
         {[...Array(5)].map((_, i) => (
           <div key={i} className="h-16 bg-slate-100 rounded-2xl animate-pulse" />
         ))}
@@ -113,7 +113,7 @@ export default function RecentActivityFeed({ initialActivities = [] }: { initial
   }
 
   return (
-    <div className="relative">
+    <div className="relative font-arabic" dir="rtl">
       <div className="space-y-4">
         <AnimatePresence initial={false}>
           {activities.length > 0 ? (
@@ -123,22 +123,22 @@ export default function RecentActivityFeed({ initialActivities = [] }: { initial
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="group flex items-start gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100"
+                className="group flex items-start gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 shadow-sm hover:shadow-none"
               >
                 <div className={`mt-1 w-10 h-10 rounded-xl flex items-center justify-center border ${getBadgeColor(activity.action_type)} shadow-sm group-hover:scale-110 transition-transform`}>
                   {getIcon(activity.action_type)}
                 </div>
                 
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 pr-2">
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <p className="text-sm font-bold text-slate-900 truncate uppercase">
+                    <p className="text-sm font-black text-slate-900 truncate">
                       {activity.profiles?.full_name || 'مستخدم غير معروف'}
                     </p>
                     <span className="text-[10px] font-bold text-slate-400 whitespace-nowrap">
                       {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true, locale: ar })}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                  <p className="text-xs text-slate-500 font-bold leading-relaxed">
                     {activity.description}
                   </p>
                 </div>
@@ -147,7 +147,7 @@ export default function RecentActivityFeed({ initialActivities = [] }: { initial
           ) : (
             <div className="py-20 text-center">
               <Activity className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-              <p className="text-sm font-bold text-slate-400">لا يوجد نشاط مسجل حالياً</p>
+              <p className="text-sm font-black text-slate-400">لا يوجد نشاط مسجل حالياً</p>
             </div>
           )}
         </AnimatePresence>

@@ -63,7 +63,7 @@ export default function AdminInviteManager({ initialLinks = [] }: { initialLinks
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || "Failed to create link")
+        throw new Error(data.error || "خطأ في إنشاء الرابط")
       }
 
       setNewLinkLabel("")
@@ -94,7 +94,7 @@ export default function AdminInviteManager({ initialLinks = [] }: { initialLinks
   }
 
   return (
-    <div className="space-y-8 font-arabic">
+    <div className="space-y-8 font-arabic" dir="rtl">
       {/* Premium Creation Section - Light Theme */}
       <section className="glass-card rounded-[32px] overflow-hidden border-slate-200 relative group bg-white shadow-sm">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
@@ -106,7 +106,7 @@ export default function AdminInviteManager({ initialLinks = [] }: { initialLinks
             </div>
             <div>
               <h2 className="text-xl font-black text-slate-900">إصدار رابط جديد</h2>
-              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-0.5">Invite Link Engine v2.0</p>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-0.5">محرك روابط الدعوة الإصدار 2.0</p>
             </div>
           </div>
           <div className="hidden md:block">
@@ -126,9 +126,9 @@ export default function AdminInviteManager({ initialLinks = [] }: { initialLinks
                   value={newLinkLabel}
                   onChange={(e) => setNewLinkLabel(e.target.value)}
                   placeholder="مثال: مطور أعمال - الرياض"
-                  className="w-full px-6 py-4 bg-slate-50 rounded-2xl border border-slate-200 focus:border-primary/50 focus:bg-white transition-all font-bold outline-none text-slate-900 placeholder:text-slate-300"
+                  className="w-full pr-14 pl-6 py-4 bg-slate-50 rounded-2xl border border-slate-200 focus:border-primary/50 focus:bg-white transition-all font-bold outline-none text-slate-900 placeholder:text-slate-300"
                 />
-                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within/input:text-primary transition-colors" />
+                <Mail className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within/input:text-primary transition-colors" />
               </div>
             </div>
 
@@ -138,14 +138,14 @@ export default function AdminInviteManager({ initialLinks = [] }: { initialLinks
                 <select 
                   value={expiration}
                   onChange={(e) => setExpiration(e.target.value)}
-                  className="w-full px-6 py-4 bg-slate-50 rounded-2xl border border-slate-200 focus:border-primary/50 focus:bg-white transition-all font-bold outline-none appearance-none text-slate-900 cursor-pointer"
+                  className="w-full pr-14 pl-6 py-4 bg-slate-50 rounded-2xl border border-slate-200 focus:border-primary/50 focus:bg-white transition-all font-bold outline-none appearance-none text-slate-900 cursor-pointer"
                 >
                   <option value="24h">24 ساعة (اختبار سريع)</option>
                   <option value="7d">أسبوع واحد (توظيف)</option>
                   <option value="30d">شهر كامل (موسم)</option>
                   <option value="permanent">دائم (رابط إداري)</option>
                 </select>
-                <div className="absolute left-6 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-2">
+                <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-2">
                    <Clock className="w-5 h-5 text-slate-300 group-focus-within/select:text-primary transition-colors" />
                 </div>
               </div>
@@ -165,7 +165,7 @@ export default function AdminInviteManager({ initialLinks = [] }: { initialLinks
             ) : (
               <>
                 <span>إنشاء وتفعيل الرابط</span>
-                <Send className="w-5 h-5 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
               </>
             )}
           </button>
@@ -186,7 +186,7 @@ export default function AdminInviteManager({ initialLinks = [] }: { initialLinks
       </section>
 
       {/* Active Links Section - Light Theme */}
-      <div className="space-y-6 font-arabic">
+      <div className="space-y-6">
         <div className="flex items-center justify-between px-4">
            <div className="flex items-center gap-3">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">السجلات النشطة</h3>
@@ -210,7 +210,7 @@ export default function AdminInviteManager({ initialLinks = [] }: { initialLinks
                     isExpired ? "opacity-30 grayscale" : "hover:border-primary/20"
                   }`}
                 >
-                  <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100">
+                  <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 shadow-sm">
                     <ExternalLink className={`w-6 h-6 ${isExpired ? "text-slate-300" : "text-primary opacity-60"}`} />
                   </div>
 
@@ -222,16 +222,16 @@ export default function AdminInviteManager({ initialLinks = [] }: { initialLinks
                           ? "bg-red-50 text-red-500 border-red-100" 
                           : "bg-emerald-50 text-emerald-600 border-emerald-100"
                       }`}>
-                        {isExpired ? "Expired" : "Active"}
+                        {isExpired ? "منتهي" : "نشط"}
                       </span>
                     </div>
                     
                     <div className="flex flex-wrap items-center gap-5 text-[10px] font-bold text-slate-400">
                       <span className="flex items-center gap-1.5 px-2 py-1 bg-slate-50 rounded-lg">
                         <Clock className="w-3 h-3 text-slate-400" />
-                        {link.expires_at ? new Date(link.expires_at).toLocaleDateString("ar-EG") : "صلاحية مفتوحة"}
+                        {link.expires_at ? new Date(link.expires_at).toLocaleDateString("ar-SA") : "صلاحية مفتوحة"}
                       </span>
-                      <span className="flex items-center gap-1.5 px-2 py-1 bg-slate-50 rounded-lg">
+                      <span className="flex items-center gap-1.5 px-2 py-1 bg-slate-50 rounded-lg font-arabic">
                         <Users className="w-3 h-3 text-slate-400" />
                         الاستخدام: {link.usage_count}
                       </span>
@@ -275,7 +275,7 @@ export default function AdminInviteManager({ initialLinks = [] }: { initialLinks
                   <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-xl border border-slate-100">
                     <ShieldCheck className="w-10 h-10 text-slate-200" />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 font-arabic">
                     <p className="text-xl font-black text-slate-900 tracking-tight">لا توجد روابط نشطة</p>
                     <p className="text-xs text-slate-400 font-bold max-w-[200px] mx-auto leading-relaxed">
                       ابدأ بإصدار أول رابط دعوة لفريقك من خلال النموذج أعلاه.

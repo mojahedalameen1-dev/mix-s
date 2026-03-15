@@ -97,7 +97,7 @@ export default async function AdminDashboard() {
     })) : []
 
     return (
-      <div className="min-h-screen pb-24 space-y-20 relative overflow-hidden bg-slate-50/50">
+      <div className="min-h-screen pb-24 space-y-20 relative overflow-hidden bg-slate-50/50 font-arabic">
         {/* Subtle background elements for light theme */}
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] -z-10" />
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-500/5 rounded-full blur-[100px] -z-10" />
@@ -115,10 +115,10 @@ export default async function AdminDashboard() {
               
               <div className="space-y-2">
                 <h1 className="text-6xl md:text-9xl font-black tracking-tighter text-slate-900 leading-[0.85] uppercase italic">
-                  Command <br />
-                  <span className="text-primary not-italic">Center</span>
+                  مركز <br />
+                  <span className="text-primary not-italic">القيادة</span>
                 </h1>
-                <p className="max-w-xl text-slate-500 font-bold text-xl leading-relaxed pr-2 border-r-2 border-primary/20">
+                <p className="max-w-xl text-slate-500 font-bold text-xl leading-relaxed pr-6 border-r-4 border-primary/20">
                   واجهة إدارة الموارد المتقدمة. تحكم في تدفق البيانات، صلاحيات المستخدمين، ومراقبة الأداء الختامي للمنشأة.
                 </p>
               </div>
@@ -131,7 +131,7 @@ export default async function AdminDashboard() {
                 </div>
                 <div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">حالة النظام</p>
-                  <p className="text-xl font-black text-slate-900 italic">OPERATIONAL</p>
+                  <p className="text-xl font-black text-slate-900 italic">يعمل بكفاءة</p>
                 </div>
               </div>
               <div className="glass-card p-8 rounded-[40px] bg-white/80 border-slate-200 space-y-6 min-w-[200px] group transition-all hover:border-emerald-500/40">
@@ -140,7 +140,7 @@ export default async function AdminDashboard() {
                 </div>
                 <div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">زمن الاستجابة</p>
-                  <p className="text-xl font-black text-emerald-600 italic">0.4 <span className="text-[10px] ml-1">MS</span></p>
+                  <p className="text-xl font-black text-emerald-600 italic">0.4 <span className="text-[10px] ml-1">م.ث</span></p>
                 </div>
               </div>
             </div>
@@ -154,13 +154,13 @@ export default async function AdminDashboard() {
                 <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
                    <Users className="w-6 h-6" />
                 </div>
-                <span className="text-[10px] font-black text-emerald-500 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100 italic">LIVE</span>
+                <span className="text-[10px] font-black text-emerald-500 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100 italic">مباشر</span>
              </div>
              <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">المطورين النشطين</p>
                 <div className="flex items-baseline gap-2">
                    <span className="text-4xl font-black text-slate-900">{bdCount || 0}</span>
-                   <span className="text-xs font-bold text-slate-300 italic uppercase">Agents</span>
+                   <span className="text-xs font-bold text-slate-300 italic uppercase">مطور</span>
                 </div>
              </div>
           </div>
@@ -175,7 +175,7 @@ export default async function AdminDashboard() {
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">إجمالي العملاء</p>
                 <div className="flex items-baseline gap-2">
                    <span className="text-4xl font-black text-slate-900">{clientsCount || 0}</span>
-                   <span className="text-xs font-bold text-slate-300 italic uppercase">Clients</span>
+                   <span className="text-xs font-bold text-slate-300 italic uppercase">عميل</span>
                 </div>
              </div>
           </div>
@@ -190,7 +190,7 @@ export default async function AdminDashboard() {
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">مبيعات الشهر</p>
                 <div className="flex items-baseline gap-2">
                    <span className="text-4xl font-black text-slate-900">{monthSalesCount}</span>
-                   <span className="text-xs font-bold text-slate-300 italic uppercase">Deals</span>
+                   <span className="text-xs font-bold text-slate-300 italic uppercase">صفقة</span>
                 </div>
              </div>
           </div>
@@ -205,7 +205,7 @@ export default async function AdminDashboard() {
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">إيرادات الشهر</p>
                 <div className="flex items-baseline gap-2">
                    <span className="text-4xl font-black text-emerald-600">{(monthRevenue / 1000).toFixed(1)}K</span>
-                   <span className="text-xs font-bold text-slate-300 italic uppercase">SAR</span>
+                   <span className="text-xs font-bold text-slate-300 italic uppercase">ر.س</span>
                 </div>
              </div>
           </div>
@@ -224,7 +224,7 @@ export default async function AdminDashboard() {
                   </div>
                   <div className="flex items-baseline gap-4">
                     <span className="text-[120px] font-black tracking-tighter leading-none pr-2">{(totalSales / 1000).toLocaleString()}</span>
-                    <span className="text-3xl font-black text-slate-300 uppercase italic">K.SAR</span>
+                    <span className="text-3xl font-black text-slate-300 uppercase italic">ر.س (ألف)</span>
                   </div>
                 </div>
                 <div className="space-y-4">
@@ -235,10 +235,10 @@ export default async function AdminDashboard() {
                    <StatProgress progress={progress} />
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-12 border-r border-slate-100 pr-12 lg:pr-20 font-arabic">
+              <div className="flex flex-col items-end gap-12 border-r border-slate-100 pr-12 lg:pr-20">
                  <div className="text-right space-y-2">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">المستهدف السنوي</p>
-                    <p className="text-5xl font-black italic">1.2<span className="text-2xl ml-1 text-slate-300">M</span></p>
+                    <p className="text-5xl font-black italic">1.2<span className="text-2xl mr-1 text-slate-300">م</span></p>
                  </div>
                  <div className="text-right space-y-2">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">توقعات النمو</p>
@@ -264,7 +264,7 @@ export default async function AdminDashboard() {
                       <LayoutGrid className="w-6 h-6 text-primary" />
                    </div>
                    <div className="space-y-1">
-                      <h2 className="text-4xl font-black tracking-tighter text-slate-900 italic uppercase">Access Portals</h2>
+                      <h2 className="text-4xl font-black tracking-tighter text-slate-900 italic uppercase">منافذ الوصول</h2>
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">إدارة منافذ الدخول والروابط</p>
@@ -282,8 +282,8 @@ export default async function AdminDashboard() {
                       <Users className="w-6 h-6 text-slate-500" />
                    </div>
                    <div className="space-y-1">
-                      <h2 className="text-4xl font-black tracking-tighter text-slate-900 italic uppercase">Agent Network</h2>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2 border-l border-primary/40 leading-none">فريق مطوري الأعمال النشطين</p>
+                      <h2 className="text-4xl font-black tracking-tighter text-slate-900 italic uppercase">شبكة المطورين</h2>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pr-2 border-r border-primary/40 leading-none">فريق مطوري الأعمال النشطين</p>
                    </div>
                 </div>
              </div>
@@ -301,8 +301,8 @@ export default async function AdminDashboard() {
                  <Activity className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                 <h2 className="text-4xl font-black tracking-tighter text-slate-900 italic uppercase">Operational Feed</h2>
-                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2 border-l border-primary/40 leading-none">سجل النشاط المباشر للنظام</p>
+                 <h2 className="text-4xl font-black tracking-tighter text-slate-900 italic uppercase">سجل العمليات</h2>
+                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pr-2 border-r border-primary/40 leading-none">سجل النشاط المباشر للنظام</p>
               </div>
            </div>
            
@@ -315,11 +315,11 @@ export default async function AdminDashboard() {
 
   } catch (e: any) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-20 bg-black">
+      <div className="min-h-screen flex items-center justify-center p-20 bg-black font-arabic">
         <div className="p-10 bg-red-500/5 border border-red-500/20 rounded-[40px] text-red-500 max-w-2xl w-full backdrop-blur-3xl">
           <h1 className="text-2xl font-black mb-4 flex items-center gap-3">
              <Shield className="w-8 h-8" />
-             CRITICAL SYSTEM ERROR
+             خطأ جسيم في النظام
           </h1>
           <p className="font-bold mb-4 opacity-80">{e.message}</p>
           <pre className="text-[10px] p-6 bg-black/40 rounded-2xl overflow-auto border border-white/5 font-mono">{e.stack}</pre>
