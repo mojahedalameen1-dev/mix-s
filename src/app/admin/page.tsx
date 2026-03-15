@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import AdminUsersList from "@/components/AdminUsersList"
 import AdminInviteManager from "@/components/AdminInviteManager"
 import RecentActivityFeed from "@/components/RecentActivityFeed"
@@ -8,7 +8,7 @@ import { Users, Target, Shield, TrendingUp, UserPlus, Activity, ArrowUpRight, La
 export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboard() {
-  const supabase = createClient()
+  const supabase = createAdminClient()
   
   try {
     // 1. Business Developers Count
@@ -47,6 +47,34 @@ export default async function AdminDashboard() {
     const totalSales = allWonDeals?.reduce((acc, d) => acc + (Number(d.expected_value) || 0), 0) || 0
     const globalTarget = 1200000 
     const progress = (totalSales / globalTarget) * 100
+
+    // 4. Fetch initial child component data
+    const [{ data: initialInvites }, { data: bds }, { data: initialActivities }] = await Promise.all([
+      supabase.from('invite_links').select('*').order('created_at', { ascending: false }),
+      supabase.from('profiles').select('*').eq('role', 'business_developer').order('created_at', { ascending: false }),
+      supabase.from('activity_logs').select('*, profiles:user_id(full_name)').order('created_at', { ascending: false }).limit(50)
+    ])
+
+    // Calculate stats for initialUsers
+    const initialUsers = bds ? await Promise.all(bds.map(async (bd) => {
+      const [{ count: clientCount }, { data: deals }, { data: lastLog }] = await Promise.all([
+        supabase.from('clients').select('id', { count: 'exact', head: true }).eq('engineer_id', bd.id),
+        supabase.from('deals').select('expected_value, stage').eq('engineer_id', bd.id),
+        supabase.from('activity_logs').select('created_at').eq('user_id', bd.id).order('created_at', { ascending: false }).limit(1).maybeSingle()
+      ])
+
+      const revenue = deals
+        ?.filter(d => ['مغلقة ناجحة', 'won'].includes(d.stage || ''))
+        .reduce((acc, d) => acc + (Number(d.expected_value) || 0), 0) || 0
+
+      return {
+        ...bd,
+        clients_count: clientCount || 0,
+        deals_count: deals?.length || 0,
+        total_revenue: revenue,
+        last_activity: lastLog?.created_at
+      }
+    })) : []
 
     return (
       <div className="min-h-screen pb-24 space-y-20 relative overflow-hidden bg-slate-50/50">
@@ -104,15 +132,15 @@ export default async function AdminDashboard() {
           <div className="glass-card p-8 rounded-[40px] bg-white border-slate-100 flex flex-col justify-between group hover:border-primary/40 transition-all">
              <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
-                  <Users className="w-6 h-6" />
+                   <Users className="w-6 h-6" />
                 </div>
                 <span className="text-[10px] font-black text-emerald-500 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100 italic">LIVE</span>
              </div>
              <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">المطورين النشطين</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black text-slate-900">{bdCount || 0}</span>
-                  <span className="text-xs font-bold text-slate-300 italic uppercase">Agents</span>
+                   <span className="text-4xl font-black text-slate-900">{bdCount || 0}</span>
+                   <span className="text-xs font-bold text-slate-300 italic uppercase">Agents</span>
                 </div>
              </div>
           </div>
@@ -120,14 +148,14 @@ export default async function AdminDashboard() {
           <div className="glass-card p-8 rounded-[40px] bg-white border-slate-100 flex flex-col justify-between group hover:border-primary/40 transition-all">
              <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-500">
-                  <Shield className="w-6 h-6" />
+                   <Shield className="w-6 h-6" />
                 </div>
              </div>
              <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">إجمالي العملاء</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black text-slate-900">{clientsCount || 0}</span>
-                  <span className="text-xs font-bold text-slate-300 italic uppercase">Clients</span>
+                   <span className="text-4xl font-black text-slate-900">{clientsCount || 0}</span>
+                   <span className="text-xs font-bold text-slate-300 italic uppercase">Clients</span>
                 </div>
              </div>
           </div>
@@ -135,14 +163,14 @@ export default async function AdminDashboard() {
           <div className="glass-card p-8 rounded-[40px] bg-white border-slate-100 flex flex-col justify-between group hover:border-primary/40 transition-all">
              <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-500">
-                  <TrendingUp className="w-6 h-6" />
+                   <TrendingUp className="w-6 h-6" />
                 </div>
              </div>
              <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">مبيعات الشهر</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black text-slate-900">{monthSalesCount}</span>
-                  <span className="text-xs font-bold text-slate-300 italic uppercase">Deals</span>
+                   <span className="text-4xl font-black text-slate-900">{monthSalesCount}</span>
+                   <span className="text-xs font-bold text-slate-300 italic uppercase">Deals</span>
                 </div>
              </div>
           </div>
@@ -150,14 +178,14 @@ export default async function AdminDashboard() {
           <div className="glass-card p-8 rounded-[40px] bg-white border-slate-100 flex flex-col justify-between group hover:border-emerald-500/40 transition-all">
              <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500">
-                  <ArrowUpRight className="w-6 h-6" />
+                   <ArrowUpRight className="w-6 h-6" />
                 </div>
              </div>
              <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">إيرادات الشهر</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black text-emerald-600">{(monthRevenue / 1000).toFixed(1)}K</span>
-                  <span className="text-xs font-bold text-slate-300 italic uppercase">SAR</span>
+                   <span className="text-4xl font-black text-emerald-600">{(monthRevenue / 1000).toFixed(1)}K</span>
+                   <span className="text-xs font-bold text-slate-300 italic uppercase">SAR</span>
                 </div>
              </div>
           </div>
@@ -195,8 +223,8 @@ export default async function AdminDashboard() {
                  <div className="text-right space-y-2">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">توقعات النمو</p>
                     <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
-                      <p className="text-5xl font-black text-emerald-600 italic leading-none">+18%</p>
+                       <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                       <p className="text-5xl font-black text-emerald-600 italic leading-none">+18%</p>
                     </div>
                  </div>
               </div>
@@ -223,7 +251,7 @@ export default async function AdminDashboard() {
                       </div>
                    </div>
                 </div>
-                <AdminInviteManager />
+                <AdminInviteManager initialLinks={initialInvites || []} />
              </div>
           </div>
           
@@ -241,7 +269,7 @@ export default async function AdminDashboard() {
              </div>
              
              <div className="glass-card rounded-[48px] p-2 bg-white/50 border-slate-100">
-                <AdminUsersList />
+                <AdminUsersList initialUsers={initialUsers} />
              </div>
           </div>
         </section>
@@ -250,7 +278,7 @@ export default async function AdminDashboard() {
         <section className="max-w-[1400px] mx-auto px-4">
            <div className="flex items-center gap-6 mb-8">
               <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center border border-slate-200 text-slate-500">
-                <Activity className="w-6 h-6" />
+                 <Activity className="w-6 h-6" />
               </div>
               <div className="space-y-1">
                  <h2 className="text-4xl font-black tracking-tighter text-slate-900 italic uppercase">Operational Feed</h2>
@@ -259,7 +287,7 @@ export default async function AdminDashboard() {
            </div>
            
            <div className="glass-card rounded-[48px] p-8 bg-white border-slate-100">
-              <RecentActivityFeed />
+              <RecentActivityFeed initialActivities={initialActivities || []} />
            </div>
         </section>
       </div>

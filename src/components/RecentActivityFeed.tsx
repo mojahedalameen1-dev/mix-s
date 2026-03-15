@@ -18,13 +18,15 @@ type ActivityLog = {
   }
 }
 
-export default function RecentActivityFeed() {
-  const [activities, setActivities] = useState<ActivityLog[]>([])
-  const [loading, setLoading] = useState(true)
+export default function RecentActivityFeed({ initialActivities = [] }: { initialActivities?: ActivityLog[] }) {
+  const [activities, setActivities] = useState<ActivityLog[]>(initialActivities)
+  const [loading, setLoading] = useState(initialActivities.length === 0)
   const supabase = createClient()
 
   useEffect(() => {
-    fetchActivities()
+    if (initialActivities.length === 0) {
+      fetchActivities()
+    }
 
     const channel = supabase
       .channel('activity_logs_feed')
@@ -56,7 +58,7 @@ export default function RecentActivityFeed() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [])
+  }, [initialActivities.length, supabase])
 
   async function fetchActivities() {
     try {

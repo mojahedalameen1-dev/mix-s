@@ -14,9 +14,9 @@ interface BDStats extends Profile {
   last_activity?: string
 }
 
-export default function AdminUsersList() {
-  const [users, setUsers] = useState<BDStats[]>([])
-  const [loading, setLoading] = useState(true)
+export default function AdminUsersList({ initialUsers = [] }: { initialUsers?: BDStats[] }) {
+  const [users, setUsers] = useState<BDStats[]>(initialUsers)
+  const [loading, setLoading] = useState(initialUsers.length === 0)
   const [search, setSearch] = useState("")
   const [sortBy, setSortBy] = useState<'name' | 'revenue' | 'clients'>('revenue')
   const supabase = createClient()
@@ -76,8 +76,10 @@ export default function AdminUsersList() {
   }, [supabase])
 
   useEffect(() => {
-    fetchUsers()
-  }, [fetchUsers])
+    if (initialUsers.length === 0) {
+      fetchUsers()
+    }
+  }, [fetchUsers, initialUsers.length])
 
   const filteredUsers = useMemo(() => {
     return users

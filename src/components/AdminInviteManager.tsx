@@ -16,8 +16,8 @@ interface InviteLink {
   created_at: string
 }
 
-export default function AdminInviteManager() {
-  const [links, setLinks] = useState<InviteLink[]>([])
+export default function AdminInviteManager({ initialLinks = [] }: { initialLinks?: InviteLink[] }) {
+  const [links, setLinks] = useState<InviteLink[]>(initialLinks)
   const [newLinkLabel, setNewLinkLabel] = useState("")
   const [expiration, setExpiration] = useState("24h")
   const [copiedId, setCopiedId] = useState<string | null>(null)
@@ -39,57 +39,35 @@ export default function AdminInviteManager() {
     }
   }, [supabase])
 
-  useEffect(() => {
-    fetchLinks()
-  }, [fetchLinks])
-
   const createLink = async () => {
     if (!newLinkLabel) return
     setLoading(true)
+    setErrorStatus(null)
     
     try {
-      setErrorStatus(null)
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      
-      const user = session?.user
-      if (!user) {
-        throw new Error("لم يتم العثور على جلسة صالحة. يرجى تسجيل الخروج والدخول مرة أخرى.")
-      }
-
-      const token = Math.random().toString(36).substring(2, 11) + '-' + Math.random().toString(36).substring(2, 6)
       let expiresAt: Date | null = new Date()
-      
       if (expiration === "24h") expiresAt.setHours(expiresAt.getHours() + 24)
       else if (expiration === "7d") expiresAt.setDate(expiresAt.getDate() + 7)
       else if (expiration === "30d") expiresAt.setDate(expiresAt.getDate() + 30)
       else expiresAt = null
 
-      const { error } = await supabase.from('invite_links').insert({
-        token,
-        label: newLinkLabel,
-        expires_at: expiresAt?.toISOString(),
-        is_active: true,
-        created_by: user.id
+      const res = await fetch("/api/admin/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          label: newLinkLabel, 
+          expiresAt: expiresAt?.toISOString() 
+        }),
       })
 
-      if (error) {
-        if (error.code === '42703') {
-          throw new Error("تنبيه: يجب تحديث هيكل قاعدة البيانات (الأعمدة ناقصة). يرجى مراجعة التعليمات.")
-        }
-        throw new Error(`تعذر إنشاء الرابط: ${error.message} (${error.code})`)
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create link")
       }
 
       setNewLinkLabel("")
       fetchLinks()
-      
-      // Log activity
-      await logActivity(
-        supabase, 
-        user.id, 
-        'invite_created', 
-        `تم إنشاء رابط دعوة جديد: ${newLinkLabel}`,
-        { metadata: { label: newLinkLabel, expires: expiration } }
-      )
     } catch (error: any) {
       console.error('Error creating link:', error)
       setErrorStatus(error.message || "حدث خطأ غير متوقع")
