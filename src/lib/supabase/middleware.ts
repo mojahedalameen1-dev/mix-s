@@ -1,14 +1,42 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Admin session validation — matches the cookie set by /api/admin-auth
+const ADMIN_SESSION_COOKIE = 'mix_admin_session'
+const ADMIN_SESSION_VALUE = 'authorized_' + Buffer.from('admin' + 'm58858').toString('base64')
+
+function isValidAdminSession(request: NextRequest): boolean {
+  const cookie = request.cookies.get(ADMIN_SESSION_COOKIE)?.value
+  return cookie === ADMIN_SESSION_VALUE
+}
+
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+    request: { headers: request.headers },
   })
 
-  // 1. Create Supabase Client
+  const pathname = request.nextUrl.pathname
+
+  // ── ADMIN ROUTES — Use custom cookie (no Supabase needed) ──────────────────
+  if (pathname.startsWith('/admin')) {
+    // /admin/login is public
+    if (pathname === '/admin/login') {
+      // If already logged in as admin, redirect to dashboard
+      if (isValidAdminSession(request)) {
+        return NextResponse.redirect(new URL('/admin', request.url))
+      }
+      return response
+    }
+
+    // All other /admin/* routes require admin session
+    if (!isValidAdminSession(request)) {
+      return NextResponse.redirect(new URL('/admin/login', request.url))
+    }
+
+    return response
+  }
+
+  // ── ALL OTHER ROUTES — Use Supabase Auth (for BD users) ───────────────────
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -35,46 +63,33 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // 2. Get User
   const { data: { user } } = await supabase.auth.getUser()
-  
-  const pathname = request.nextUrl.pathname
-  const isAuthPage = pathname.startsWith('/login') || 
+
+  const isAuthPage = pathname.startsWith('/login') ||
                      pathname.startsWith('/invite') ||
                      pathname.startsWith('/complete-profile') ||
                      pathname.startsWith('/auth/callback')
-  const isAdminPage = pathname.startsWith('/admin')
 
-  // LOGGING (Visible in Vercel Logs)
-  console.log(`[Middleware] ${request.method} ${pathname} | User: ${user?.id || 'GUEST'}`)
-
-  // 3. Conditional Redirects
-  
-  // Only redirect GUESTS to /login if they aren't already on an auth page
+  // Redirect unauthenticated users to login
   if (!user && !isAuthPage) {
-    console.log(`[Middleware] REDIRECT -> /login (reason: unauthenticated)`)
-    // Allow the request to proceed if it's the root, to let app/page.tsx handle its own logic
-    if (pathname !== '/') {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // If logged in and at /login, go home
+  // Redirect authenticated users away from login
   if (user && pathname === '/login') {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // 4. Admin Role Check
-  if (user && isAdminPage) {
+  // Enforce profile completion
+  if (user && !isAuthPage && pathname !== '/') {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('full_name, status')
       .eq('id', user.id)
       .single()
 
-    if (!profile || profile.role !== 'admin') {
-      console.log(`[Middleware] REDIRECT -> / (reason: not admin, role: ${profile?.role})`)
-      return NextResponse.redirect(new URL('/', request.url))
+    if (profile?.status === 'active' && !profile?.full_name && pathname !== '/complete-profile') {
+      return NextResponse.redirect(new URL('/complete-profile', request.url))
     }
   }
 
