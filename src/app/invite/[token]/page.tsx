@@ -69,18 +69,8 @@ export default async function InvitePage({ params }: { params: { token: string }
     .update({ usage_count: (invite.usage_count || 0) + 1 })
     .eq('id', invite.id)
 
-  console.log(`[Invite] Token valid, setting cookie and redirecting to login...`)
+  console.log(`[Invite] Token valid, redirecting to accept API...`)
   
-  // Set a secure cookie with the invitation token
-  const cookieStore = cookies()
-  cookieStore.set('sb-invite-token', params.token, {
-    path: '/',
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 60 * 10, // 10 minutes
-    sameSite: 'lax'
-  })
-  
-  // If token is valid, redirect to login
-  redirect('/login')
+  // Redirect to a Route Handler to set the cookie safely
+  redirect(`/api/invite/accept?token=${params.token}`)
 }
