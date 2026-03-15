@@ -14,7 +14,28 @@ export async function GET(request: Request) {
     
     if (!authError && session) {
       const user = session.user
-      
+
+      // ── STEP 0: Ensure profile exists (fallback if trigger failed) ──
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id, status, full_name, role')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (!existingProfile) {
+        console.warn(`[AuthCallback] Profile missing for user ${user.id}, creating fallback...`)
+        await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            full_name: user.user_metadata?.full_name || null,
+            email: user.email,
+            avatar_url: user.user_metadata?.avatar_url || null,
+            role: 'engineer',
+            status: 'pending',
+          })
+      }
+
       // Update last login timestamp for all users
       await supabase
         .from('profiles')
@@ -22,7 +43,7 @@ export async function GET(request: Request) {
         .eq('id', user.id)
 
       if (inviteToken) {
-        console.log(`[AuthCallback] Found invite token from state: ${inviteToken}, checking validity...`)
+        console.log(`[AuthCallback] Found invite token: ${inviteToken}, checking validity...`)
         
         const now = new Date().toISOString()
         const { data: invite } = await supabase
@@ -65,7 +86,7 @@ export async function GET(request: Request) {
         }
       }
 
-      // Check current user profile status
+      // ── Regular login: re-fetch profile after potential creation ──
       const { data: profile } = await supabase
         .from('profiles')
         .select('status, full_name')
@@ -90,3 +111,4 @@ export async function GET(request: Request) {
   // return the user to an error page with instructions
   return NextResponse.redirect(`${origin}/login?error=Could not authenticate user`)
 }
+
