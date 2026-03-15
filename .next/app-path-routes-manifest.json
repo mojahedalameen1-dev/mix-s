@@ -1,1 +1,1 @@
-{"/_not-found/page":"/_not-found","/auth/callback/route":"/auth/callback","/invite/[token]/page":"/invite/[token]","/page":"/","/deals/page":"/deals","/clients/page":"/clients","/login/page":"/login","/admin/page":"/admin"}
+{"/_not-found/page":"/_not-found","/auth/callback/route":"/auth/callback","/deals/page":"/deals","/clients/page":"/clients","/login/page":"/login","/page":"/","/invite/[token]/page":"/invite/[token]","/admin/page":"/admin"}

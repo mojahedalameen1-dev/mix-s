@@ -1,1 +1,1 @@
-{"version":1,"functions":{"/login":{},"/":{},"/deals":{},"/clients":{}}}
+{"version":1,"functions":{"/invite/[token]":{},"/login":{},"/":{},"/admin":{}}}

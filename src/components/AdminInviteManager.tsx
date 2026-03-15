@@ -35,7 +35,6 @@ export default function AdminInviteManager() {
       if (data) setLinks(data)
     } catch (error) {
       console.error('Error fetching links:', error)
-      // Potentially add a toast notification here
     }
   }, [supabase])
 
@@ -51,9 +50,6 @@ export default function AdminInviteManager() {
       setErrorStatus(null)
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
-      console.log("[Debug] Current Session:", session)
-      if (sessionError) console.error("[Debug] Session Error:", sessionError)
-      
       const user = session?.user
       if (!user) {
         throw new Error("لم يتم العثور على جلسة صالحة. يرجى تسجيل الخروج والدخول مرة أخرى.")
@@ -67,14 +63,7 @@ export default function AdminInviteManager() {
       else if (expiration === "30d") expiresAt.setDate(expiresAt.getDate() + 30)
       else expiresAt = null
 
-      console.log("[Debug] Attempting to insert invite link:", {
-        token,
-        label: newLinkLabel,
-        expires_at: expiresAt?.toISOString(),
-        created_by: user.id
-      })
-
-      const { error, status, statusText } = await supabase.from('invite_links').insert({
+      const { error } = await supabase.from('invite_links').insert({
         token,
         label: newLinkLabel,
         expires_at: expiresAt?.toISOString(),
@@ -83,12 +72,8 @@ export default function AdminInviteManager() {
       })
 
       if (error) {
-        console.error("[Debug] Insert Error Details:", { error, status, statusText })
         if (error.code === '42703') {
           throw new Error("تنبيه: يجب تحديث هيكل قاعدة البيانات (الأعمدة ناقصة). يرجى مراجعة التعليمات.")
-        }
-        if (status === 401) {
-          throw new Error("خطأ 401: انتهت صلاحية الجلسة أو المفتاح غير صالح. يرجى إعادة تسجيل الدخول.")
         }
         throw new Error(`تعذر إنشاء الرابط: ${error.message} (${error.code})`)
       }
@@ -96,7 +81,7 @@ export default function AdminInviteManager() {
       setNewLinkLabel("")
       fetchLinks()
     } catch (error: any) {
-      console.error('Detailed Error Summary:', error)
+      console.error('Error creating link:', error)
       setErrorStatus(error.message || "حدث خطأ غير متوقع")
     } finally {
       setLoading(false)

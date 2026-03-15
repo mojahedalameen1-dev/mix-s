@@ -1,25 +1,45 @@
 "use client"
 
-export const dynamic = 'force-dynamic'
-
 import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Client } from "@/types/database"
-import { UserPlus, Search, Phone, Mail, Building2, MoreVertical } from "lucide-react"
+import { UserPlus, Search, Phone, Building2, MoreVertical } from "lucide-react"
 import Sidebar from "@/components/Sidebar"
 import Header from "@/components/Header"
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
+  const [userRole, setUserRole] = useState<string>("engineer")
+  const [profile, setProfile] = useState<any>(null)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [newClient, setNewClient] = useState<Partial<Client>>({
+    client_name: "",
+    phone: "",
+    email: "",
+    client_type: "",
+    city: "",
+  })
   const supabase = createClient()
 
   const fetchClients = useCallback(async () => {
     try {
+      setLoading(true)
       const { data: { user }, error: authError } = await supabase.auth.getUser()
       if (authError) throw authError
 
       if (user) {
+        // Fetch profile (role + full data for Header)
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single()
+        if (profileData) {
+          setProfile(profileData)
+          setUserRole(profileData.role)
+        }
+
         const { data, error } = await supabase
           .from('clients')
           .select('*')
@@ -40,21 +60,131 @@ export default function ClientsPage() {
     fetchClients()
   }, [fetchClients])
 
+  const handleAddClient = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (user) {
+        const { data, error } = await supabase
+          .from('clients')
+          .insert([{ ...newClient, engineer_id: user.id }])
+          .select()
+        
+        if (error) throw error
+
+        if (data) {
+          setClients([data[0], ...clients])
+          setIsAddModalOpen(false)
+          setNewClient({ client_name: "", phone: "", email: "", client_type: "", city: "" })
+        }
+      }
+    } catch (error) {
+      console.error("Error adding client:", error)
+      alert("حدث خطأ أثناء إضافة العميل")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="flex h-screen bg-background" dir="rtl">
-      <Sidebar role="engineer" /> {/* Role should be dynamic preferably from context */}
+      <Sidebar role={userRole as any} />
       
       <main className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-8">
+        {profile && <Header profile={profile} />}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">العملاء</h1>
             <p className="text-muted-foreground mt-1">إدارة قائمة عملائك وبيانات التواصل</p>
           </div>
-          <button className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:opacity-90 transition-all">
+          <button 
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:opacity-90 transition-all"
+          >
             <UserPlus className="w-5 h-5" />
             إضافة عميل جديد
           </button>
         </div>
+
+        {/* Add Client Modal */}
+        {isAddModalOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-card w-full max-w-lg rounded-[32px] p-8 space-y-6 shadow-2xl border">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-black italic">إضافة عميل جديد</h2>
+                <button 
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="p-2 hover:bg-muted rounded-full transition-colors"
+                >
+                  <MoreVertical className="w-5 h-5 rotate-90" />
+                </button>
+              </div>
+
+              <form onSubmit={handleAddClient} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mr-1">اسم العميل</label>
+                  <input 
+                    required
+                    value={newClient.client_name}
+                    onChange={(e) => setNewClient({...newClient, client_name: e.target.value})}
+                    className="w-full px-4 py-3 bg-muted/50 rounded-xl border-none outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mr-1">رقم الجوال</label>
+                    <input 
+                      value={newClient.phone || ""}
+                      onChange={(e) => setNewClient({...newClient, phone: e.target.value})}
+                      className="w-full px-4 py-3 bg-muted/50 rounded-xl border-none outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mr-1">البريد الإلكتروني</label>
+                    <input 
+                      type="email"
+                      value={newClient.email || ""}
+                      onChange={(e) => setNewClient({...newClient, email: e.target.value})}
+                      className="w-full px-4 py-3 bg-muted/50 rounded-xl border-none outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mr-1">نوع العميل</label>
+                    <select 
+                      value={newClient.client_type || ""}
+                      onChange={(e) => setNewClient({...newClient, client_type: e.target.value})}
+                      className="w-full px-4 py-3 bg-muted/50 rounded-xl border-none outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold"
+                    >
+                      <option value="">اختر النوع</option>
+                      <option value="شركة">شركة</option>
+                      <option value="فرد">فرد</option>
+                      <option value="جهة حكومية">جهة حكومية</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mr-1">المدينة</label>
+                    <input 
+                      value={newClient.city || ""}
+                      onChange={(e) => setNewClient({...newClient, city: e.target.value})}
+                      className="w-full px-4 py-3 bg-muted/50 rounded-xl border-none outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold"
+                    />
+                  </div>
+                </div>
+                <button 
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-black text-lg active:scale-[0.98] transition-all disabled:opacity-50"
+                >
+                  {loading ? "جاري الإضافة..." : "حفظ العميل"}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
 
         <div className="bg-card border rounded-2xl overflow-hidden shadow-sm">
           <div className="p-4 border-b flex items-center justify-between gap-4">

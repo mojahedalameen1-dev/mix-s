@@ -43,8 +43,7 @@ export default function QuickStats({ profile }: { profile: Profile }) {
     }
 
     fetchStats()
-    fetchStats()
-  }, [profile.id, profile.monthly_target, supabase])
+  }, [profile.id, profile.monthly_target])
 
   const cards = [
     { label: "إجمالي المبيعات", value: `${stats.totalSales.toLocaleString()} ر.س`, icon: Banknote, color: "text-emerald-500", bg: "bg-emerald-500/10" },
