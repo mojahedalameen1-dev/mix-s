@@ -1,8 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin"
-import { redirect } from "next/navigation"
-import { cookies } from "next/headers"
 import { ShieldAlert, Clock, ArrowRight } from "lucide-react"
 import Link from "next/link"
+import { LoginButton } from "./login-button"
 
 export const dynamic = 'force-dynamic'
 
@@ -12,8 +11,6 @@ export default async function InvitePage({ params }: { params: { token: string }
   
   console.log(`[Invite] Verifying token: ${params.token} at ${now}`)
 
-  // Verify invite token with robust checks including single-use
-  // Using Admin Client bypasses RLS and handles schema checks more reliably
   const { data: invite, error } = await supabase
     .from('invite_links')
     .select('*')
@@ -63,14 +60,31 @@ export default async function InvitePage({ params }: { params: { token: string }
     )
   }
 
-  // Record usage (optional, but good for tracking)
-  await supabase
-    .from('invite_links')
-    .update({ usage_count: (invite.usage_count || 0) + 1 })
-    .eq('id', invite.id)
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-6" dir="rtl">
+      <div className="max-w-md w-full bg-white dark:bg-zinc-900 border-2 border-primary/20 p-12 rounded-[48px] shadow-2xl text-center space-y-8 relative overflow-hidden">
+        {/* Decorative background */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16" />
+        
+        <div className="w-20 h-20 bg-primary/10 rounded-[28px] flex items-center justify-center mx-auto text-primary border border-primary/20">
+          <ShieldAlert className="w-10 h-10" />
+        </div>
+        
+        <div className="space-y-3">
+          <h1 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter">دعوة انضمام</h1>
+          <p className="text-zinc-500 dark:text-zinc-400 font-bold leading-relaxed">
+            تمت دعوتك للانضمام إلى فريق <span className="text-primary">MIX-S</span> كمسؤول مبيعات.
+          </p>
+        </div>
 
-  console.log(`[Invite] Token valid, redirecting to accept API...`)
-  
-  // Redirect to a Route Handler to set the cookie safely
-  redirect(`/api/invite/accept?token=${params.token}`)
+        <div className="pt-4">
+          <LoginButton token={params.token} />
+        </div>
+
+        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">
+          بشرط التسجيل باستخدام حساب Google الرسمي
+        </p>
+      </div>
+    </div>
+  )
 }

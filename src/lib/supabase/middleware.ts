@@ -15,18 +15,20 @@ export async function updateSession(request: NextRequest) {
     return response
   }
 
-  // ── ADMIN ROUTES — Use custom cookie (no Supabase needed) ──────────────────
+  // ── RULE 1 & 2: /invite/* and /auth/* are always public ──────────────────
+  if (pathname.startsWith('/invite') || pathname.startsWith('/auth') || pathname === '/login') {
+    return response
+  }
+
+  // ── ADMIN ROUTES — Preserving existing logic ──────────────────
   if (pathname.startsWith('/admin')) {
-    // /admin/login is public
     if (pathname === '/admin/login') {
-      // If already logged in as admin, redirect to dashboard
       if (isValidAdminSession(adminCookie)) {
         return NextResponse.redirect(new URL('/admin', request.url))
       }
       return response
     }
 
-    // All other /admin/* routes require admin session
     if (!isValidAdminSession(adminCookie)) {
       return NextResponse.redirect(new URL('/admin/login', request.url))
     }
@@ -34,7 +36,7 @@ export async function updateSession(request: NextRequest) {
     return response
   }
 
-  // ── ALL OTHER ROUTES — Use Supabase Auth (for BD users) ───────────────────
+  // ── OTHER ROUTES — Use Supabase Auth (for BD users) ───────────────────
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -63,32 +65,32 @@ export async function updateSession(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const isAuthPage = pathname.startsWith('/login') ||
-                     pathname.startsWith('/invite') ||
-                     pathname.startsWith('/complete-profile') ||
-                     pathname.startsWith('/auth/callback')
-
   // Redirect unauthenticated users to login
-  if (!user && !isAuthPage) {
+  if (!user) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Redirect authenticated users away from login
-  if (user && pathname === '/login') {
-    return NextResponse.redirect(new URL('/', request.url))
+  // ── RULE 5: /* → requires auth + status === 'active' + full_name is not null
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, status')
+    .eq('id', user.id)
+    .single()
+
+  // ── RULE 3: /complete-profile → requires auth, only if full_name is null ──
+  if (pathname === '/complete-profile') {
+    if (profile?.full_name) {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+    return response
   }
 
-  // Enforce profile completion
-  if (user && !isAuthPage && pathname !== '/') {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('full_name, status')
-      .eq('id', user.id)
-      .single()
+  if (profile?.status === 'pending') {
+    return NextResponse.redirect(new URL('/pending-approval', request.url))
+  }
 
-    if (profile?.status === 'active' && !profile?.full_name && pathname !== '/complete-profile') {
-      return NextResponse.redirect(new URL('/complete-profile', request.url))
-    }
+  if (profile?.status === 'active' && !profile?.full_name) {
+    return NextResponse.redirect(new URL('/complete-profile', request.url))
   }
 
   return response
