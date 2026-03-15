@@ -57,10 +57,12 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   // Protection logic
-  const isAuthPage = request.nextUrl.pathname.startsWith('/login') || 
-                     request.nextUrl.pathname.startsWith('/invite') ||
-                     request.nextUrl.pathname.startsWith('/complete-profile')
-  const isAdminPage = request.nextUrl.pathname.startsWith('/admin')
+  const pathname = request.nextUrl.pathname
+  const isAuthPage = pathname.startsWith('/login') || 
+                     pathname.startsWith('/invite') ||
+                     pathname.startsWith('/complete-profile') ||
+                     pathname.startsWith('/auth/callback')
+  const isAdminPage = pathname.startsWith('/admin')
 
   // If no user and not an auth page, redirect to login
   if (!user && !isAuthPage) {
@@ -68,31 +70,35 @@ export async function updateSession(request: NextRequest) {
   }
 
   // If user exists and trying to access login, redirect to home
-  if (user && request.nextUrl.pathname.startsWith('/login')) {
+  if (user && pathname.startsWith('/login')) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
+  // Admin route protection
   if (user && isAdminPage) {
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role, full_name, status')
       .eq('id', user.id)
       .single()
 
-    if (profile?.role !== 'admin') {
+    console.log(`[Middleware] Admin check for user ${user.id}: role=${profile?.role}, error=${profileError?.message || 'none'}`)
+
+    // If we can't read the profile (RLS issue) or user is not admin, redirect
+    if (!profile || profile.role !== 'admin') {
       return NextResponse.redirect(new URL('/', request.url))
     }
   }
 
-  // Final check: If active user has no full_name, redirect to /complete-profile (except on auth pages)
-  if (user && !isAuthPage && request.nextUrl.pathname !== '/') {
+  // Final check: If active user has no full_name, redirect to /complete-profile
+  if (user && !isAuthPage && pathname !== '/') {
      const { data: profile } = await supabase
       .from('profiles')
       .select('full_name, status')
       .eq('id', user.id)
       .single()
     
-    if (profile?.status === 'active' && !profile?.full_name && request.nextUrl.pathname !== '/complete-profile') {
+    if (profile?.status === 'active' && !profile?.full_name && pathname !== '/complete-profile') {
       return NextResponse.redirect(new URL('/complete-profile', request.url))
     }
   }
