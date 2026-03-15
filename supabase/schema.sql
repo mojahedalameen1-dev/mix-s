@@ -5,10 +5,6 @@ ALTER TABLE IF EXISTS deals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS badges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS invite_links ENABLE ROW LEVEL SECURITY;
-ALTER TABLE IF EXISTS public.team_targets ENABLE ROW LEVEL SECURITY;
-ALTER TABLE IF EXISTS public.meeting_preps ENABLE ROW LEVEL SECURITY;
-ALTER TABLE IF EXISTS public.scores ENABLE ROW LEVEL SECURITY;
-ALTER TABLE IF EXISTS public.files ENABLE ROW LEVEL SECURITY;
 
 -- 1. PROFILES Table
 CREATE TABLE IF NOT EXISTS public.profiles (
@@ -18,11 +14,12 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     avatar_url TEXT,
     job_title TEXT,
     monthly_target NUMERIC DEFAULT 0,
-    role TEXT CHECK (role IN ('engineer', 'admin')) DEFAULT 'engineer',
+    role TEXT CHECK (role IN ('engineer', 'admin', 'business_developer')) DEFAULT 'engineer',
     status TEXT CHECK (status IN ('pending', 'active', 'deactivated')) DEFAULT 'pending',
-    transferred_to UUID REFERENCES public.profiles(id),
     theme_preference TEXT CHECK (theme_preference IN ('light', 'dark')) DEFAULT 'light',
     has_seen_welcome BOOLEAN DEFAULT FALSE,
+    invited_by UUID REFERENCES public.profiles(id),
+    last_login_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
@@ -34,6 +31,7 @@ CREATE TABLE IF NOT EXISTS public.invite_links (
     expires_at TIMESTAMP WITH TIME ZONE,
     is_active BOOLEAN DEFAULT TRUE,
     usage_count INTEGER DEFAULT 0,
+    used_at TIMESTAMP WITH TIME ZONE,
     created_by UUID REFERENCES public.profiles(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
@@ -70,7 +68,7 @@ CREATE TABLE IF NOT EXISTS public.notifications (
     type TEXT NOT NULL,
     message TEXT NOT NULL,
     is_read BOOLEAN DEFAULT FALSE,
-    related_deal_id UUID REFERENCES public.deals(id) ON DELETE SET NULL,
+    related_deal_id INTEGER REFERENCES public.deals(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
@@ -80,57 +78,6 @@ CREATE TABLE IF NOT EXISTS public.badges (
     engineer_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
     badge_key TEXT NOT NULL,
     awarded_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
-);
-
--- 7. TEAM TARGETS Table
-CREATE TABLE IF NOT EXISTS public.team_targets (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    month INTEGER NOT NULL,
-    year INTEGER NOT NULL,
-    total_target NUMERIC NOT NULL,
-    created_by UUID REFERENCES public.profiles(id),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-    UNIQUE (month, year)
-);
-
--- 8. MEETING PREPS Table
-CREATE TABLE IF NOT EXISTS public.meeting_preps (
-    id SERIAL PRIMARY KEY,
-    client_id INTEGER REFERENCES public.clients(id) ON DELETE SET NULL,
-    title TEXT NOT NULL,
-    client_name TEXT, -- Fallback for legacy
-    sector TEXT,
-    meeting_date DATE,
-    status TEXT DEFAULT 'مسودة',
-    idea_raw TEXT,
-    analysis_result JSONB,
-    tags TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
-);
-
--- 9. SCORES Table (BANT Qualification)
-CREATE TABLE IF NOT EXISTS public.scores (
-    id SERIAL PRIMARY KEY,
-    client_id UUID REFERENCES public.clients(id) ON DELETE CASCADE,
-    budget_score INTEGER DEFAULT 0,
-    authority_score INTEGER DEFAULT 0,
-    need_score INTEGER DEFAULT 0,
-    timeline_score INTEGER DEFAULT 0,
-    fit_score INTEGER DEFAULT 0,
-    total_score INTEGER DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-    UNIQUE (client_id)
-);
-
--- 10. FILES Table
-CREATE TABLE IF NOT EXISTS public.files (
-    id SERIAL PRIMARY KEY,
-    client_id INTEGER REFERENCES public.clients(id) ON DELETE CASCADE,
-    file_name TEXT NOT NULL,
-    file_path TEXT NOT NULL,
-    file_type_label TEXT DEFAULT 'أخرى',
-    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
 -- RLS POLICIES --
@@ -159,22 +106,6 @@ CREATE POLICY "Users can update their own notifications." ON public.notification
 -- Badges
 CREATE POLICY "Badges are viewable by everyone." ON public.badges FOR SELECT USING (true);
 CREATE POLICY "Only system can award badges." ON public.badges FOR INSERT WITH CHECK (false); -- Insert via Edge Function/Service Role
-
--- Team Targets
-CREATE POLICY "Team targets viewable by all active users." ON public.team_targets FOR SELECT USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND status = 'active'));
-CREATE POLICY "Admins can manage team targets." ON public.team_targets FOR ALL USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
-
--- Meeting Preps
-CREATE POLICY "Engineers can manage their own meeting preps." ON public.meeting_preps FOR ALL 
-USING (EXISTS (SELECT 1 FROM public.clients WHERE id = meeting_preps.client_id AND engineer_id = auth.uid()));
-
--- Scores
-CREATE POLICY "Engineers can manage scores for their clients." ON public.scores FOR ALL 
-USING (EXISTS (SELECT 1 FROM public.clients WHERE id = scores.client_id AND engineer_id = auth.uid()));
-
--- Files
-CREATE POLICY "Engineers can manage files for their clients." ON public.files FOR ALL 
-USING (EXISTS (SELECT 1 FROM public.clients WHERE id = files.client_id AND engineer_id = auth.uid()));
 
 -- Functions & Triggers --
 
