@@ -10,6 +10,11 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const adminCookie = request.cookies.get(ADMIN_SESSION_COOKIE)?.value
 
+  // 1. Skip middleware for API routes - let them handle their own auth
+  if (pathname.startsWith('/api/')) {
+    return response
+  }
+
   // ── ADMIN ROUTES — Use custom cookie (no Supabase needed) ──────────────────
   if (pathname.startsWith('/admin')) {
     // /admin/login is public
